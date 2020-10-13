@@ -25,6 +25,8 @@ async def on_message(message):
 		await message.channel.send(out.read().split("Â")[0])
 	elif '.github' in message.content:
 		await message.channel.send('https://github.com/AleXwern')
+	elif '.diary' in message.content:
+		await message.channel.send('https://docs.google.com/spreadsheets/d/1Xrb5CjEM74nQhiQ9Jx6H6wOnpfMIgOZR2oYEBxSqG1A/edit?usp=sharing')
 	elif '.rs' in message.content and str(message.author) == 'AleXwern#4074':
 		print('Closing connection!')
 		await client.close()

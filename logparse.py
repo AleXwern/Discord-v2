@@ -78,7 +78,6 @@ async def hhmmss(time):
 	hours = floor(time / 3600)
 	minutes = floor((time - (hours * 3600)) / 60)
 	seconds = time - (hours * 3600) - (minutes * 60)
-
 	if hours < 10:
 		hours = "0" + str(hours)
 	if minutes < 10:
