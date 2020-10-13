@@ -1,8 +1,6 @@
-import os
 import discord
 import requests
 import logparse
-from multiprocessing import Process
 
 # Tokens present in token.txt, delimited by comma:
 # 0 = Discord
