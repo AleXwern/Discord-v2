@@ -10,3 +10,9 @@ How to run:
 1. There's 2 main scripts: main.py and vector.py.
 2. main.py is an endless loop that always tries to run vector.py whenever vector.py returns.
 3. vector.py is the main script and if you want to exit the script on exit, run this.
+4. Giving raw FFlogs link in Discord chat provides following output
+<img src="https://github.com/AleXwern/Discord-v2/blob/main/output.png" alt="drawing" width="800"/>
+
+FFlogs API status:
+1. Uses the v1 API for now (JSON return data)
+2. Aim is to see how v2 works and possibly switch to it but at first glance is looks wildly different so first I'll get the old system working and then see the improvements on v2 side.
