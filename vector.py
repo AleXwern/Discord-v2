@@ -22,7 +22,7 @@ async def on_message(message):
 	if message.author == client.user:
 		return
 	elif 'https://www.fflogs.com/reports/' == message.content[:31]:
-		await logparse.parse_pull(message, message.content[31:47], token[1])
+		await logparse.get_pulls(message, message.content[31:47], token[1])
 	elif '.help' in message.content:
 		await message.channel.send(out.read().split("Â")[0])
 	elif '.github' in message.content:
@@ -31,6 +31,6 @@ async def on_message(message):
 		print('Closing connection!')
 		await client.close()
 	else:
-		print(str(message.author) + ' sent: ' + str(message.content))
+		print(str(message.author) + ' sent: ' + message.content)
 
 client.run(token[0])
