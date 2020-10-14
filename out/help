@@ -3,6 +3,7 @@
 fflogs link  returns formatted logreport.
    ->Parser may skip checks. Keep that in mind.
 .github      AleXwern's github.
+.source      Gives this bot's source code repo.
 .diary       Link to Ultimate prog sheet.
 ```
 ¤
