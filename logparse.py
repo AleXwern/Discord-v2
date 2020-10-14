@@ -146,7 +146,6 @@ async def parse_report(report, code, token, message):
 	tea = TEA()
 	ucob = UCoB()
 	uwu = UWU()
-	ult = [0, 0, 0]
 	i = 0
 
 	for p in report['fights']:
@@ -173,15 +172,11 @@ async def parse_report(report, code, token, message):
 		if enc[i].pullen > 20000:
 			url = ulturl + code + '?start=' + str(p['start_time']) + '&end=' + str(p['end_time']) + '&hostility=1&translate=true&' + token
 			if enc[i].raidtype == 'The Epic of Alexander (Ultimate)':
-				print(url)
 				tea = await alexhandle(url, code, p['end_time'], tea, TEA(), token)
-				ult[0] = 1
 			elif enc[i].raidtype == 'the Unending Coil of Bahamut (Ultimate)':
 				ucob = await ucobhandle(url, code, p['end_time'], ucob)
-				ult[1] = 1
 			elif enc[i].raidtype == 'The Weapon\'s Refrain (Ultimate)':
 				uwu = await uwuhandle(url, code, p['end_time'], uwu)
-				ult[2] = 1
 	await print_logs(enc, tea, uwu, ucob, message)
 
 async def get_pulls(message, code, token):
