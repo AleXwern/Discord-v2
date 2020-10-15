@@ -68,7 +68,50 @@ async def alexhandle(url, code, end, tea, teat, token):
 		tea.enrage += teat.enrage
 	return tea
 
-async def ucobhandle(url, code, end, ucob):
+async def ucobhandle(url, code, end, ucob, ucobt, token):
+	data = requests.get(url)
+	if data.status_code != 200:
+		return ucob
+	cast = data.json()
+	for c in cast['events']:
+		if not (c['ability'] is None):
+			if c['ability']['name'] == 'CHECK':
+				ucobt.enrage = 1
+			elif c['ability']['name'] == 'Morn Afah':
+				ucobt.gold = 1
+			elif c['ability']['name'] == 'CHECK':
+				ucobt.doub = 1
+			elif c['ability']['name'] == 'Grand Octet':
+				ucobt.octet = 1
+			elif c['ability']['name'] == 'Tenstrike Trio':
+				ucobt.ten = 1
+			elif c['ability']['name'] == 'Heavensfall Trio':
+				ucobt.fall = 1
+			elif c['ability']['name'] == 'Fellruin Trio':
+				ucobt.fell = 1
+			elif c['ability']['name'] == 'Blackfire Trio':
+				ucobt.blck = 1
+			elif c['ability']['name'] == 'Quickmarch Trio':
+				ucobt.quick = 1
+			elif c['ability']['name'] == 'Seventh Umbral Era':
+				ucobt.baha = 1
+			elif c['ability']['name'] == 'Heavensfall':
+				ucobt.nael = 1
+	if not (cast.get('nextPageTimestamp') is None):
+		url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
+		ucob = await ucobhandle(url, code, end, ucob, ucobt, token)
+	else:
+		ucob.enrage += ucobt.enrage
+		ucob.gold += ucobt.gold
+		ucob.doub += ucobt.doub
+		ucob.octet += ucobt.octet
+		ucob.ten += ucobt.ten
+		ucob.fall += ucobt.fall
+		ucob.fell += ucobt.fell
+		ucob.blck += ucobt.blck
+		ucob.quick += ucobt.quick
+		ucob.baha += ucobt.baha
+		ucob.nael += ucobt.nael
 	return ucob
 
 async def uwuhandle(url, code, end, uwu):
@@ -146,7 +189,6 @@ async def parse_report(report, code, token, message):
 	tea = TEA()
 	ucob = UCoB()
 	uwu = UWU()
-	ult = [0, 0, 0]
 	i = 0
 
 	for p in report['fights']:
@@ -167,21 +209,18 @@ async def parse_report(report, code, token, message):
 			enc[i].start = p['start_time']
 		if p['end_time'] > enc[i].end:
 			enc[i].end = p['end_time']
-		if p['kill'] == True:
-			enc[i].kills += 1
+		if not (p.get('kill') is None):
+			if p['kill'] == True:
+				enc[i].kills += 1
 		enc[i].raidlen = enc[i].end - enc[i].start
 		if enc[i].pullen > 20000:
 			url = ulturl + code + '?start=' + str(p['start_time']) + '&end=' + str(p['end_time']) + '&hostility=1&translate=true&' + token
 			if enc[i].raidtype == 'The Epic of Alexander (Ultimate)':
-				print(url)
 				tea = await alexhandle(url, code, p['end_time'], tea, TEA(), token)
-				ult[0] = 1
 			elif enc[i].raidtype == 'the Unending Coil of Bahamut (Ultimate)':
-				ucob = await ucobhandle(url, code, p['end_time'], ucob)
-				ult[1] = 1
+				ucob = await ucobhandle(url, code, p['end_time'], ucob, UCoB(), token)
 			elif enc[i].raidtype == 'The Weapon\'s Refrain (Ultimate)':
 				uwu = await uwuhandle(url, code, p['end_time'], uwu)
-				ult[2] = 1
 	await print_logs(enc, tea, uwu, ucob, message)
 
 async def get_pulls(message, code, token):

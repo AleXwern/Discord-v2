@@ -8,7 +8,7 @@ The v1 bot was a NodeJS app that became very bloated and annoying to manage so v
 
 How to run:
 1. There's 2 main scripts: main.py and vector.py.
-2. Any private tokens go into 'token.txt' file that's in the root of the repo (not included) delimited by comma.
+2. Any private tokens go into 'token.txt' file that's in the root of the repo (not included), delimited by comma and in order of DISCORD,FFLOGS.
 3. main.py is an endless loop that always tries to run vector.py whenever vector.py returns.
 4. vector.py is the main script and if you want to exit the script on exit, run this.
 5. Giving raw FFlogs link in Discord chat provides following output with more detailed info if the instance in question is UCoB, UWU or TEA.
