@@ -1,6 +1,7 @@
 import discord
 import requests
 import logparse
+import guildparse
 
 # Tokens present in token.txt, delimited by comma:
 # 0 = Discord
@@ -21,6 +22,8 @@ async def on_message(message):
 		return
 	elif 'https://www.fflogs.com/reports/' == message.content[:31]:
 		await logparse.get_pulls(message, message.content[31:47], token[1])
+	elif '.guild' == message.content[:6]:
+		await guildparse.parse_guild(message.content.split(' '), token[1], message)
 	elif '.help' in message.content:
 		await message.channel.send(out.read().split("Â")[0])
 	elif '.github' in message.content:

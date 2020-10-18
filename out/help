@@ -2,6 +2,10 @@
 *Final Fantasy XIV*
 fflogs link  returns formatted logreport.
    ->Parser may skip checks. Keep that in mind.
+.guild       args: [partition] [guild] [server] [region]. Perform dataoutput
+	to all [partition] logs in specified guild.
+	Replace spaces with _
+	ex. .guild Ultimates_(Stormblood) Up_In_There Cerberus EU
 .github      AleXwern's github.
 .source      Gives this bot's source code repo.
 .diary       Link to Ultimate prog sheet.

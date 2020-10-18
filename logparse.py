@@ -173,7 +173,7 @@ async def hhmmss(time):
 		seconds = "0" + str(seconds)
 	return str(hours) + ':' + str(minutes) + ':' + str(seconds)
 
-async def print_logs(encounter, message, start):
+async def print_logs(encounter, message, start, code):
 	text = ''
 	start = int(start)
 
@@ -181,6 +181,7 @@ async def print_logs(encounter, message, start):
 		enc.raidlen = round(enc.raidlen / 1000)
 		enc.maxlen = round(enc.maxlen / 1000)
 		text = '```*' + enc.raidtype + '*'
+		text += '\nReport ID:	  ' + code
 		text += '\nTotal pulls:	' + str(enc.pulls)
 		text += '\nStart time:	 ' + datetime.fromtimestamp((start + enc.start) / 1000).strftime(dformat)
 		text += '\nEnd time:	   ' + datetime.fromtimestamp((start + enc.end) / 1000).strftime(dformat)
@@ -188,7 +189,7 @@ async def print_logs(encounter, message, start):
 		text += '\nRaid length:	' + str(await hhmmss(floor(enc.raidlen)))
 		text += '\nPull length:	' + str(await hhmmss(floor(enc.rpullen / 1000)))
 		text += '\nMax pull len:   ' + str(await hhmmss(enc.maxlen))
-		text += '\nAvg pull len:   ' + str(await hhmmss(floor(enc.raidlen / enc.pulls)))
+		text += '\nAvg pull len:   ' + str(await hhmmss(floor(enc.rpullen / 1000 / enc.pulls)))
 		if enc.raidtype == 'The Epic of Alexander (Ultimate)':
 			tea = enc.tea
 			text += '\n\nAdditional TEA information - Wipes by phase:'
@@ -236,6 +237,8 @@ async def addphase_check(report, enc):
 	for p in report['enemies']:
 		if p['name'] == 'Twintania':
 			for g in p['fights']:
+				if g.get('groups') is None:
+					continue
 				if g['groups'] >= 9 and g['id'] >= enc.fightid[0] and g['id'] <= enc.fightid[1]:
 					enc.ucob.doub += 1
 			break
@@ -282,7 +285,7 @@ async def parse_report(report, code, token, message):
 				enc[i].uwu = await uwuhandle(url, code, p['end_time'], enc[i].uwu, UWU(), token)
 	if zone == 'the Unending Coil of Bahamut (Ultimate)':
 		await addphase_check(report, enc[i])
-	await print_logs(enc, message, report['start'])
+	await print_logs(enc, message, report['start'], code)
 
 async def get_pulls(message, code, token):
 	if len(code) != 16:
@@ -290,7 +293,7 @@ async def get_pulls(message, code, token):
 		return
 	data = requests.get(logreport + code + '?' + token)
 	if data.status_code != 200:
-		await message.channel.send('There\'s an issue on FFlogs side or bad link.')
+		await message.channel.send('There\'s an issue on FFlogs side or bad link: ' + str(data.status_code))
 		return
 	await parse_report(data.json(), code, token, message)
 		
