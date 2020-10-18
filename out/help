@@ -1,13 +1,20 @@
-```Help:
-*Final Fantasy XIV*
-fflogs link  returns formatted logreport.
-   ->Parser may skip checks. Keep that in mind.
-.guild       args: [partition] [guild] [server] [region]. Perform dataoutput
-	to all [partition] logs in specified guild.
+```*Final Fantasy XIV*
+fflogs link
+	returns formatted logreport.
+	If there's any Ultimates in logs, gives more detailed info.
+	->Parser may skip checks. Keep that in mind.
+.guild [partition] [guild] [server] [region]
+	Perform dataoutput to all [partition] logs in specified guild.
 	Replace spaces with _
 	ex. .guild Ultimates_(Stormblood) Up_In_There Cerberus EU
-.github      AleXwern's github.
-.source      Gives this bot's source code repo.
-.diary       Link to Ultimate prog sheet.
+.user [partition] [user]
+	Same as .guild but with FFlogs username.
+	Note the same format.
+.github
+	AleXwern's github.
+.source
+	Gives this bot's source code repo.
+.diary
+	Link to Ultimate prog sheet.
 ```
 ¤

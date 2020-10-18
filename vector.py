@@ -24,6 +24,8 @@ async def on_message(message):
 		await logparse.get_pulls(message, message.content[31:47], token[1])
 	elif '.guild' == message.content[:6]:
 		await guildparse.parse_guild(message.content.split(' '), token[1], message)
+	elif '.user' == message.content[:5]:
+		await guildparse.parse_user(message.content.split(' '), token[1], message)
 	elif '.help' in message.content:
 		await message.channel.send(out.read().split("Â")[0])
 	elif '.github' in message.content:

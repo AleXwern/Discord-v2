@@ -58,6 +58,7 @@ async def alexhandle(url, code, end, tea, teat, token):
 				teat.bjcc = 1
 			elif c['ability']['name'] == 'Alpha Sword':
 				teat.lc = 1
+			#print(c['ability']['name'])
 	if not (cast.get('nextPageTimestamp') is None):
 		url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
 		print(url)
@@ -83,6 +84,10 @@ async def ucobhandle(url, code, end, ucob, ucobt, token):
 	cast = data.json()
 	for c in cast['events']:
 		if not (c['ability'] is None):
+			if c['ability']['name'] == 'Attack':
+				continue
+			elif c['ability']['name'] == 'Liquid Hell':
+				continue
 			if c['ability']['name'] == 'Morn Afah':
 				ucobt.gold += 1
 			elif c['ability']['name'] == 'Grand Octet':
@@ -101,6 +106,7 @@ async def ucobhandle(url, code, end, ucob, ucobt, token):
 				ucobt.baha = 1
 			elif c['ability']['name'] == 'Heavensfall':
 				ucobt.nael = 1
+			#print(c['ability']['name'])
 	if not (cast.get('nextPageTimestamp') is None):
 		url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
 		ucob = await ucobhandle(url, code, end, ucob, ucobt, token)
@@ -127,6 +133,12 @@ async def uwuhandle(url, code, end, uwu, uwut, token):
 	cast = data.json()
 	for c in cast['events']:
 		if not (c['ability'] is None):
+			if c['ability']['name'] == 'Attack':
+				continue
+			elif c['ability']['name'] == 'Tumult':
+				continue
+			elif  c['ability']['name'] == '':
+				continue
 			if c['ability']['name'] == 'Sabik': #This is a placeholder until I find better check
 				uwut.enrage = 1
 			elif c['ability']['name'] == 'Ultimate Suppression':
@@ -143,6 +155,7 @@ async def uwuhandle(url, code, end, uwu, uwut, token):
 				uwut.titan = 1
 			elif c['ability']['name'] == 'Hellfire':
 				uwut.ifrit = 1
+			#print(c['ability']['name'])
 	if not (cast.get('nextPageTimestamp') is None):
 		url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
 		print(url)
@@ -180,6 +193,8 @@ async def print_logs(encounter, message, start, code):
 	for enc in encounter:
 		enc.raidlen = round(enc.raidlen / 1000)
 		enc.maxlen = round(enc.maxlen / 1000)
+		if enc.pulls == 0:
+			enc.pulls = 1
 		text = '```*' + enc.raidtype + '*'
 		text += '\nReport ID:	  ' + code
 		text += '\nTotal pulls:	' + str(enc.pulls)
