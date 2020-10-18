@@ -15,8 +15,7 @@ class Guild:
 		self.region = ''
 		self.reports = []
 
-async def comp_fights(guild, token, message):
-	data = requests.get(url2 + guild.guild + '?' + token)
+async def comp_fights(guild, token, message, data):
 	if data.status_code != 200:
 		await message.channel.send('There\'s an issue on FFlogs side or some data was incorrect: ' + str(data.status_code))
 		return
@@ -38,7 +37,8 @@ async def parse_guild(arr, token, message):
 	guild.fight = arr[1].replace('_', ' ').lower()
 	guild.server = arr[3]
 	guild.region = arr[4]
-	await comp_fights(guild, token, message)
+	data = requests.get(url + guild.guild + '/' + guild.server + '/' + guild.region + '?' + token)
+	await comp_fights(guild, token, message, data)
 
 async def parse_user(arr, token, message):
 	guild = Guild()
@@ -46,4 +46,5 @@ async def parse_user(arr, token, message):
 		await message.channel.send("Missing user or too much garbage data.\nSee .help for more details.")
 	guild.guild = arr[2].replace('_', '%20')
 	guild.fight = arr[1].replace('_', ' ').lower()
-	await comp_fights(guild, token, message)
+	data = requests.get(url2 + guild.guild + '?' + token)
+	await comp_fights(guild, token, message, data)

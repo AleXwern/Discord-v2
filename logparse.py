@@ -8,24 +8,33 @@ ulturl = 'https://www.fflogs.com/v1/report/events/casts/'
 dformat = "%a %d %b %Y at %H:%M:%S"
 
 class TEA:
-	def __init__(self):
-		self.lc = self.bjcc = self.ts = self.alex = self.inc = self.worm = self.add = self.perf = self.alpha = self.beta = self.enrage = 0
+	def __init__(self, enrage):
+		self.lc = self.bjcc = self.ts = self.alex = self.inc = self.worm = self.add = self.perf = self.alpha = self.beta = 0
+		self.enrage = 0
+		if enrage == True:
+			self.enrage = 1
 
 class UCoB:
-	def __init__(self):
-		self.twin = self.nael = self.baha = self.quick = self.blck = self.fell = self.fall = self.ten = self.octet = self.doub = self.gold = self.enrage = 0
+	def __init__(self, enrage):
+		self.twin = self.nael = self.baha = self.quick = self.blck = self.fell = self.fall = self.ten = self.octet = self.doub = self.gold = 0
+		self.enrage = 0
+		if enrage == True:
+			self.enrage = 1
 
 class UWU:
-	def __init__(self):
-		self.garuda = self.ifrit = self.titan = self.inter = self.ultima = self.pred = self.annh = self.supp = self.roul = self.enrage = 0
+	def __init__(self, enrage):
+		self.garuda = self.ifrit = self.titan = self.inter = self.ultima = self.pred = self.annh = self.supp = self.roul = 0
+		self.enrage = 0
+		if enrage == True:
+			self.enrage = 1
 
 class Report:
 	raidtype = ''
 	def __init__(self, zone):
 		self.raidtype = zone
-		self.tea = TEA()
-		self.ucob = UCoB()
-		self.uwu = UWU()
+		self.tea = TEA(False)
+		self.ucob = UCoB(False)
+		self.uwu = UWU(False)
 		self.pulls = self.pullen = self.maxlen = self.start = self.end = self.raidlen = self.rpullen = self.kills = 0
 		self.fightid = [0, 0]
 
@@ -111,7 +120,7 @@ async def ucobhandle(url, code, end, ucob, ucobt, token):
 		url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
 		ucob = await ucobhandle(url, code, end, ucob, ucobt, token)
 	else:
-		if ucobt.gold > 4:
+		if ucobt.gold > 4 or ucobt.enrage == 1:
 			ucob.enrage += 1
 		if ucobt.gold > 0:
 			ucob.gold += 1
@@ -139,7 +148,7 @@ async def uwuhandle(url, code, end, uwu, uwut, token):
 				continue
 			elif  c['ability']['name'] == '':
 				continue
-			if c['ability']['name'] == 'Sabik': #This is a placeholder until I find better check
+			if c['ability']['name'] == 'Sabik':
 				uwut.enrage = 1
 			elif c['ability']['name'] == 'Ultimate Suppression':
 				uwut.supp = 1
@@ -158,11 +167,10 @@ async def uwuhandle(url, code, end, uwu, uwut, token):
 			#print(c['ability']['name'])
 	if not (cast.get('nextPageTimestamp') is None):
 		url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
-		print(url)
 		uwu = await uwuhandle(url, code, end, uwu, uwut, token)
 	else:
 		uwu.enrage += uwut.enrage
-		if uwut.ultima >= 2:
+		if uwut.ultima >= 4: #This seems to be weird? Every use equals to 2 casts for some reason.
 			uwu.roul += 1
 		uwu.supp += uwut.supp
 		uwu.annh += uwut.annh
@@ -242,9 +250,15 @@ async def print_logs(encounter, message, start, code):
 			text += '\n\nAdditional UWU information - Wipes by phase:'
 			text += '\nGaruda: ' + str(enc.pulls - uwu.ifrit)
 			text += ' Ifrit: ' + str(uwu.ifrit - uwu.titan)
-			text += ' Titan: ' + str(uwu.titan - uwu.ultima)
-			text += ' Ultima: ' + str(uwu.ultima - uwu.enrage)
+			text += ' Titan: ' + str(uwu.titan - uwu.inter)
+			text += ' LBs: ' + str(uwu.inter - uwu.ultima)
+			text += ' Ultima: ' + str(uwu.ultima - uwu.pred)
+			text += ' Pred: ' + str(uwu.pred - uwu.annh)
+			text += ' Annih: ' + str(uwu.annh - uwu.supp)
+			text += ' Supp: ' + str(uwu.supp - uwu.roul)
+			text += ' Roul: ' + str(uwu.roul - uwu.enrage)
 			text += ' Enrage: ' + str(uwu.enrage - enc.kills)
+			print(str(enc.pulls) + ' ' + str(uwu.ifrit) + ' ' + str(uwu.titan) + ' ' + str(uwu.inter) + ' ' + str(uwu.pred) + ' ' + str(uwu.annh) + ' ' + str(uwu.supp) + ' ' + str(uwu.roul) + ' ' + str(uwu.enrage))
 		text += '```'
 		await message.channel.send(text)
 
@@ -262,6 +276,7 @@ async def parse_report(report, code, token, message):
 	zone = ''
 	enc = []
 	i = 0
+	enrage = False
 
 	for p in report['fights']:
 		if zone == '':
@@ -286,6 +301,7 @@ async def parse_report(report, code, token, message):
 		if not (p.get('kill') is None):
 			if p['kill'] == True:
 				enc[i].kills += 1
+				enrage = True
 		if enc[i].fightid[0] == 0:
 			enc[i].fightid[0] = p['id']
 		enc[i].fightid[1] = p['id']
@@ -293,11 +309,12 @@ async def parse_report(report, code, token, message):
 		if enc[i].pullen > 20000:
 			url = ulturl + code + '?start=' + str(p['start_time']) + '&end=' + str(p['end_time']) + '&hostility=1&translate=true&' + token
 			if enc[i].raidtype == 'The Epic of Alexander (Ultimate)':
-				enc[i].tea = await alexhandle(url, code, p['end_time'], enc[i].tea, TEA(), token)
+				enc[i].tea = await alexhandle(url, code, p['end_time'], enc[i].tea, TEA(enrage), token)
 			elif enc[i].raidtype == 'the Unending Coil of Bahamut (Ultimate)':
-				enc[i].ucob = await ucobhandle(url, code, p['end_time'], enc[i].ucob, UCoB(), token)
+				enc[i].ucob = await ucobhandle(url, code, p['end_time'], enc[i].ucob, UCoB(enrage), token)
 			elif enc[i].raidtype == 'the Weapon\'s Refrain (Ultimate)' or enc[i].raidtype == 'The Weapon\'s Refrain (Ultimate)':
-				enc[i].uwu = await uwuhandle(url, code, p['end_time'], enc[i].uwu, UWU(), token)
+				enc[i].uwu = await uwuhandle(url, code, p['end_time'], enc[i].uwu, UWU(enrage), token)
+		enrage = False
 	if zone == 'the Unending Coil of Bahamut (Ultimate)':
 		await addphase_check(report, enc[i])
 	await print_logs(enc, message, report['start'], code)
