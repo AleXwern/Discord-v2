@@ -31,7 +31,7 @@ async def on_message(message):
 	elif '.github' in message.content:
 		await message.channel.send('https://github.com/AleXwern')
 	elif '.source' in message.content:
-		await message.channel.send('https://github.com/AleXwern/Discord-v2')
+		await message.channel.send('https://github.com/AleXwern/FFXIV-Encounter-Compiler')
 	elif '.diary' in message.content:
 		await message.channel.send('https://docs.google.com/spreadsheets/d/1Xrb5CjEM74nQhiQ9Jx6H6wOnpfMIgOZR2oYEBxSqG1A/edit?usp=sharing')
 	elif '.rs' in message.content and str(message.author) == 'AleXwern#4074':

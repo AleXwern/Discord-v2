@@ -33,6 +33,7 @@ async def parse_guild(arr, token, message):
 	guild = Guild()
 	if len(arr) < 5 or len(arr) > 5:
 		await message.channel.send("Incorrect amount of arguments: " + str(len(arr)) + " instead of 5.\nSee .help for more details.")
+		return
 	guild.guild = arr[2].replace('_', '%20')
 	guild.fight = arr[1].replace('_', ' ').lower()
 	guild.server = arr[3]
@@ -44,6 +45,7 @@ async def parse_user(arr, token, message):
 	guild = Guild()
 	if len(arr) < 3 or len(arr) > 3:
 		await message.channel.send("Missing user or too much garbage data.\nSee .help for more details.")
+		return
 	guild.guild = arr[2].replace('_', '%20')
 	guild.fight = arr[1].replace('_', ' ').lower()
 	data = requests.get(url2 + guild.guild + '?' + token)
