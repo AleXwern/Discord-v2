@@ -1,25 +1,33 @@
 import discord
 import requests
 from math import floor
-import time
+from datetime import datetime
 
 logreport = 'https://www.fflogs.com:443/v1/report/fights/'
 ulturl = 'https://www.fflogs.com/v1/report/events/casts/'
+dformat = "%a %d %b %Y at %H:%M:%S"
 
 class TEA:
-	lc = bjcc = ts = alex = inc = worm = add = perf = alpha = beta = enrage = 0
+	def __init__(self):
+		self.lc = self.bjcc = self.ts = self.alex = self.inc = self.worm = self.add = self.perf = self.alpha = self.beta = self.enrage = 0
 
 class UCoB:
-	twin = nael = baha = quick = blck = fell = fall = ten = octet = doub = gold = enrage = 0
+	def __init__(self):
+		self.twin = self.nael = self.baha = self.quick = self.blck = self.fell = self.fall = self.ten = self.octet = self.doub = self.gold = self.enrage = 0
 
 class UWU:
-	garuda = ifrit = titan = pred = annh = supp = roul = enrage = 0
+	def __init__(self):
+		self.garuda = self.ifrit = self.titan = self.inter = self.ultima = self.pred = self.annh = self.supp = self.roul = self.enrage = 0
 
 class Report:
 	raidtype = ''
 	def __init__(self, zone):
 		self.raidtype = zone
-	pulls = pullen = maxlen = start = end = raidlen = rpullen = kills = 0
+		self.tea = TEA()
+		self.ucob = UCoB()
+		self.uwu = UWU()
+		self.pulls = self.pullen = self.maxlen = self.start = self.end = self.raidlen = self.rpullen = self.kills = 0
+		self.fightid = [0, 0]
 
 async def alexhandle(url, code, end, tea, teat, token):
 	data = requests.get(url)
@@ -75,12 +83,8 @@ async def ucobhandle(url, code, end, ucob, ucobt, token):
 	cast = data.json()
 	for c in cast['events']:
 		if not (c['ability'] is None):
-			if c['ability']['name'] == 'CHECK':
-				ucobt.enrage = 1
-			elif c['ability']['name'] == 'Morn Afah':
-				ucobt.gold = 1
-			elif c['ability']['name'] == 'CHECK':
-				ucobt.doub = 1
+			if c['ability']['name'] == 'Morn Afah':
+				ucobt.gold += 1
 			elif c['ability']['name'] == 'Grand Octet':
 				ucobt.octet = 1
 			elif c['ability']['name'] == 'Tenstrike Trio':
@@ -101,8 +105,10 @@ async def ucobhandle(url, code, end, ucob, ucobt, token):
 		url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
 		ucob = await ucobhandle(url, code, end, ucob, ucobt, token)
 	else:
-		ucob.enrage += ucobt.enrage
-		ucob.gold += ucobt.gold
+		if ucobt.gold > 4:
+			ucob.enrage += 1
+		if ucobt.gold > 0:
+			ucob.gold += 1
 		ucob.doub += ucobt.doub
 		ucob.octet += ucobt.octet
 		ucob.ten += ucobt.ten
@@ -114,7 +120,45 @@ async def ucobhandle(url, code, end, ucob, ucobt, token):
 		ucob.nael += ucobt.nael
 	return ucob
 
-async def uwuhandle(url, code, end, uwu):
+async def uwuhandle(url, code, end, uwu, uwut, token):
+	data = requests.get(url)
+	if data.status_code != 200:
+		return uwu
+	cast = data.json()
+	for c in cast['events']:
+		if not (c['ability'] is None):
+			if c['ability']['name'] == 'Sabik': #This is a placeholder until I find better check
+				uwut.enrage = 1
+			elif c['ability']['name'] == 'Ultimate Suppression':
+				uwut.supp = 1
+			elif c['ability']['name'] == 'Ultimate Annihilation':
+				uwut.annh = 1
+			elif c['ability']['name'] == 'Ultimate Predation':
+				uwut.pred = 1
+			elif c['ability']['name'] == 'Ultima':
+				uwut.ultima += 1
+			elif c['ability']['name'] == 'Freefire':
+				uwut.inter = 1
+			elif c['ability']['name'] == 'Earthen Fury':
+				uwut.titan = 1
+			elif c['ability']['name'] == 'Hellfire':
+				uwut.ifrit = 1
+	if not (cast.get('nextPageTimestamp') is None):
+		url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
+		print(url)
+		uwu = await uwuhandle(url, code, end, uwu, uwut, token)
+	else:
+		uwu.enrage += uwut.enrage
+		if uwut.ultima >= 2:
+			uwu.roul += 1
+		uwu.supp += uwut.supp
+		uwu.annh += uwut.annh
+		uwu.pred += uwut.pred
+		if uwut.ultima > 0:
+			uwu.ultima += 1
+		uwu.inter += uwut.inter
+		uwu.titan += uwut.titan
+		uwu.ifrit += uwut.ifrit
 	return uwu
 
 async def hhmmss(time):
@@ -129,21 +173,24 @@ async def hhmmss(time):
 		seconds = "0" + str(seconds)
 	return str(hours) + ':' + str(minutes) + ':' + str(seconds)
 
-async def print_logs(encounter, tea, uwu, ucob, message):
+async def print_logs(encounter, message, start):
 	text = ''
+	start = int(start)
 
 	for enc in encounter:
 		enc.raidlen = round(enc.raidlen / 1000)
 		enc.maxlen = round(enc.maxlen / 1000)
 		text = '```*' + enc.raidtype + '*'
 		text += '\nTotal pulls:	' + str(enc.pulls)
-		#text += '\nStart time:	 ' + enc.startepoch
-		#text += '\nEnd time:	   ' + enc.endepoch
+		text += '\nStart time:	 ' + datetime.fromtimestamp((start + enc.start) / 1000).strftime(dformat)
+		text += '\nEnd time:	   ' + datetime.fromtimestamp((start + enc.end) / 1000).strftime(dformat)
 		text += '\nTotal kills:	' + str(enc.kills)
 		text += '\nRaid length:	' + str(await hhmmss(floor(enc.raidlen)))
+		text += '\nPull length:	' + str(await hhmmss(floor(enc.rpullen / 1000)))
 		text += '\nMax pull len:   ' + str(await hhmmss(enc.maxlen))
 		text += '\nAvg pull len:   ' + str(await hhmmss(floor(enc.raidlen / enc.pulls)))
 		if enc.raidtype == 'The Epic of Alexander (Ultimate)':
+			tea = enc.tea
 			text += '\n\nAdditional TEA information - Wipes by phase:'
 			text += '\nLL: ' + str(enc.pulls - tea.lc)
 			text += ' LC: ' + str(tea.lc - tea.bjcc)
@@ -159,6 +206,7 @@ async def print_logs(encounter, tea, uwu, ucob, message):
 			text += ' Enrage: ' + str(tea.enrage - enc.kills)
 			print(str(enc.pulls) + ' ' + str(tea.lc) + ' ' + str(tea.bjcc) + ' ' + str(tea.ts) + ' ' + str(tea.alex) + ' ' + str(tea.inc) + ' ' + str(tea.worm) + ' ' + str(tea.add) + ' ' + str(tea.perf) + ' ' + str(tea.alpha) + ' ' + str(tea.beta) + ' ' + str(tea.enrage))
 		elif enc.raidtype == 'the Unending Coil of Bahamut (Ultimate)':
+			ucob = enc.ucob
 			text += '\n\nAdditional UCoB information - Wipes by phase:'
 			text += '\nTwin: ' + str(enc.pulls - ucob.nael)
 			text += ' Nael: ' + str(ucob.nael - ucob.baha)
@@ -172,7 +220,9 @@ async def print_logs(encounter, tea, uwu, ucob, message):
 			text += ' Twin/Nael: ' + str(ucob.doub - ucob.gold)
 			text += ' Golden: ' + str(ucob.gold - ucob.enrage)
 			text += ' Enrage: ' + str(ucob.enrage - enc.kills)
-		elif enc.raidtype == "The Weapon's Refrain (Ultimate)":
+			print(str(enc.pulls) + ' ' + str(ucob.nael) + ' ' + str(ucob.baha) + ' ' + str(ucob.quick) + ' ' + str(ucob.blck) + ' ' + str(ucob.fell) + ' ' + str(ucob.fall) + ' ' + str(ucob.ten) + ' ' + str(ucob.octet) + ' ' + str(ucob.doub) + ' ' + str(ucob.gold) + ' ' + str(ucob.enrage))
+		elif enc.raidtype == "the Weapon\'s Refrain (Ultimate)" or enc.raidtype == 'The Weapon\'s Refrain (Ultimate)':
+			uwu = enc.uwu
 			text += '\n\nAdditional UWU information - Wipes by phase:'
 			text += '\nGaruda: ' + str(enc.pulls - uwu.ifrit)
 			text += ' Ifrit: ' + str(uwu.ifrit - uwu.titan)
@@ -182,13 +232,17 @@ async def print_logs(encounter, tea, uwu, ucob, message):
 		text += '```'
 		await message.channel.send(text)
 
+async def addphase_check(report, enc):
+	for p in report['enemies']:
+		if p['name'] == 'Twintania':
+			for g in p['fights']:
+				if g['groups'] >= 9 and g['id'] >= enc.fightid[0] and g['id'] <= enc.fightid[1]:
+					enc.ucob.doub += 1
+			break
 
 async def parse_report(report, code, token, message):
 	zone = ''
 	enc = []
-	tea = TEA()
-	ucob = UCoB()
-	uwu = UWU()
 	i = 0
 
 	for p in report['fights']:
@@ -196,6 +250,8 @@ async def parse_report(report, code, token, message):
 			enc.append(Report(p['zoneName']))
 			zone = p['zoneName']
 		elif p['zoneName'] != zone:
+			if zone == 'the Unending Coil of Bahamut (Ultimate)':
+				await addphase_check(report, enc[i])
 			zone = p['zoneName']
 			i += 1
 			enc.append(Report(p['zoneName']))
@@ -212,16 +268,21 @@ async def parse_report(report, code, token, message):
 		if not (p.get('kill') is None):
 			if p['kill'] == True:
 				enc[i].kills += 1
+		if enc[i].fightid[0] == 0:
+			enc[i].fightid[0] = p['id']
+		enc[i].fightid[1] = p['id']
 		enc[i].raidlen = enc[i].end - enc[i].start
 		if enc[i].pullen > 20000:
 			url = ulturl + code + '?start=' + str(p['start_time']) + '&end=' + str(p['end_time']) + '&hostility=1&translate=true&' + token
 			if enc[i].raidtype == 'The Epic of Alexander (Ultimate)':
-				tea = await alexhandle(url, code, p['end_time'], tea, TEA(), token)
+				enc[i].tea = await alexhandle(url, code, p['end_time'], enc[i].tea, TEA(), token)
 			elif enc[i].raidtype == 'the Unending Coil of Bahamut (Ultimate)':
-				ucob = await ucobhandle(url, code, p['end_time'], ucob, UCoB(), token)
-			elif enc[i].raidtype == 'The Weapon\'s Refrain (Ultimate)':
-				uwu = await uwuhandle(url, code, p['end_time'], uwu)
-	await print_logs(enc, tea, uwu, ucob, message)
+				enc[i].ucob = await ucobhandle(url, code, p['end_time'], enc[i].ucob, UCoB(), token)
+			elif enc[i].raidtype == 'the Weapon\'s Refrain (Ultimate)' or enc[i].raidtype == 'The Weapon\'s Refrain (Ultimate)':
+				enc[i].uwu = await uwuhandle(url, code, p['end_time'], enc[i].uwu, UWU(), token)
+	if zone == 'the Unending Coil of Bahamut (Ultimate)':
+		await addphase_check(report, enc[i])
+	await print_logs(enc, message, report['start'])
 
 async def get_pulls(message, code, token):
 	if len(code) != 16:
