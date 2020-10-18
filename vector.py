@@ -37,7 +37,5 @@ async def on_message(message):
 	elif '.rs' in message.content and str(message.author) == 'AleXwern#4074':
 		print('Closing connection!')
 		await client.close()
-	else:
-		print(str(message.author) + ' sent: ' + message.content)
 
 client.run(token[0])
