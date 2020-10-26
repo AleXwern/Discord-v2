@@ -1,8 +1,9 @@
 import discord
 import requests
 import logparse
-#from math import floor
-#from datetime import datetime
+import os
+import asyncio
+#from multiprocessing import Process
 
 url = 'https://www.fflogs.com:443/v1/reports/guild/'
 url2 = 'https://www.fflogs.com:443/v1/reports/user/'
@@ -50,3 +51,15 @@ async def parse_user(arr, token, message):
 	guild.fight = arr[1].replace('_', ' ').lower()
 	data = requests.get(url2 + guild.guild + '?' + token)
 	await comp_fights(guild, token, message, data)
+
+async def parse_file(token, message):
+	tasklist = []
+
+	file = open("logarr.txt", "r")
+	reports = file.read().split('\n')
+	for report in reports:
+		task = asyncio.ensure_future(logparse.get_pulls(message, report[31:47], token))
+		tasklist.append(task)
+		#asyncio.ru
+	#for task in tasklist:
+	#	task.join()

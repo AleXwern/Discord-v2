@@ -18,6 +18,9 @@ class UCoB:
 	def __init__(self, enrage):
 		self.twin = self.nael = self.baha = self.quick = self.blck = self.fell = self.fall = self.ten = self.octet = self.doub = self.gold = 0
 		self.enrage = 0
+		self.twisty = 0
+		self.griefid = []
+		self.grief = []
 		if enrage == True:
 			self.enrage = 1
 
@@ -115,6 +118,10 @@ async def ucobhandle(url, code, end, ucob, ucobt, token):
 				ucobt.baha = 1
 			elif c['ability']['name'] == 'Heavensfall':
 				ucobt.nael = 1
+			elif c['ability']['name'] == 'Twister':
+				if c['targetIsFriendly'] == True:
+					ucob.twisty += 1
+					ucob.griefid.append(c['targetID'])
 			#print(c['ability']['name'])
 	if not (cast.get('nextPageTimestamp') is None):
 		url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
@@ -244,6 +251,9 @@ async def print_logs(encounter, message, start, code):
 			text += ' Twin/Nael: ' + str(ucob.doub - ucob.gold)
 			text += ' Golden: ' + str(ucob.gold - ucob.enrage)
 			text += ' Enrage: ' + str(ucob.enrage - enc.kills)
+			text += '\nTwisters: ' + str(ucob.twisty)
+			for name in ucob.grief:
+				text += '\n	' + name
 			print(str(enc.pulls) + ' ' + str(ucob.nael) + ' ' + str(ucob.baha) + ' ' + str(ucob.quick) + ' ' + str(ucob.blck) + ' ' + str(ucob.fell) + ' ' + str(ucob.fall) + ' ' + str(ucob.ten) + ' ' + str(ucob.octet) + ' ' + str(ucob.doub) + ' ' + str(ucob.gold) + ' ' + str(ucob.enrage))
 		elif enc.raidtype == "the Weapon\'s Refrain (Ultimate)" or enc.raidtype == 'The Weapon\'s Refrain (Ultimate)':
 			uwu = enc.uwu
@@ -261,6 +271,13 @@ async def print_logs(encounter, message, start, code):
 			print(str(enc.pulls) + ' ' + str(uwu.ifrit) + ' ' + str(uwu.titan) + ' ' + str(uwu.inter) + ' ' + str(uwu.pred) + ' ' + str(uwu.annh) + ' ' + str(uwu.supp) + ' ' + str(uwu.roul) + ' ' + str(uwu.enrage))
 		text += '```'
 		await message.channel.send(text)
+
+async def get_griefname(report, enc): #This is very ugly and probably could be done better
+	for e in enc.ucob.griefid:
+		for p in report['friendlies']:
+			if p['id'] == e:
+				enc.ucob.grief.append(p['name'])
+				break
 
 async def addphase_check(report, enc):
 	for p in report['enemies']:
@@ -285,6 +302,7 @@ async def parse_report(report, code, token, message):
 		elif p['zoneName'] != zone:
 			if zone == 'the Unending Coil of Bahamut (Ultimate)':
 				await addphase_check(report, enc[i])
+				#await get_griefname(report, enc[i])
 			zone = p['zoneName']
 			i += 1
 			enc.append(Report(p['zoneName']))
@@ -317,9 +335,11 @@ async def parse_report(report, code, token, message):
 		enrage = False
 	if zone == 'the Unending Coil of Bahamut (Ultimate)':
 		await addphase_check(report, enc[i])
+		#await get_griefname(report, enc[i])
 	await print_logs(enc, message, report['start'], code)
 
 async def get_pulls(message, code, token):
+	print(code)
 	if len(code) != 16:
 		await message.channel.send('Invalid log!')
 		return
