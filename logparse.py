@@ -1,4 +1,5 @@
 import aiohttp
+import asyncio
 from math import floor
 from datetime import datetime
 
@@ -10,6 +11,7 @@ class TEA:
 	def __init__(self, enrage):
 		self.lc = self.bjcc = self.ts = self.alex = self.inc = self.worm = self.add = self.perf = self.alpha = self.beta = 0
 		self.enrage = 0
+		self.err = 0
 		if enrage == True:
 			self.enrage = 1
 
@@ -17,6 +19,7 @@ class UCoB:
 	def __init__(self, enrage):
 		self.twin = self.nael = self.baha = self.quick = self.blck = self.fell = self.fall = self.ten = self.octet = self.doub = self.gold = 0
 		self.enrage = 0
+		self.err = 0
 		self.twisty = 0
 		self.griefid = []
 		self.grief = []
@@ -27,6 +30,7 @@ class UWU:
 	def __init__(self, enrage):
 		self.garuda = self.ifrit = self.titan = self.inter = self.ultima = self.pred = self.annh = self.supp = self.roul = 0
 		self.enrage = 0
+		self.err = 0
 		if enrage == True:
 			self.enrage = 1
 
@@ -41,9 +45,10 @@ class Report:
 		self.fightid = [0, 0]
 
 async def alexhandle(url, code, end, tea, teat, token, session):
-	#data = requests.get(url)
+	tea.err = 0
 	async with session.get(url) as data:
 		if data.status != 200:
+			tea.err = data.status
 			return tea
 		cast = await data.json()
 		for c in cast['events']:
@@ -73,8 +78,12 @@ async def alexhandle(url, code, end, tea, teat, token, session):
 				#print(c['ability']['name'])
 		if not (cast.get('nextPageTimestamp') is None):
 			url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
-			print(url)
-			tea = await alexhandle(url, code, end, tea, teat, token, session)
+			while True:
+				tea = await alexhandle(url, code, end, tea, teat, token, session)
+				if tea.err == 429: #Rate limit, wait and try again
+					asyncio.sleep(2)
+				else:
+					break
 		else:
 			tea.lc += teat.lc
 			tea.bjcc += teat.bjcc
@@ -90,8 +99,10 @@ async def alexhandle(url, code, end, tea, teat, token, session):
 		return tea
 
 async def ucobhandle(url, code, end, ucob, ucobt, token, session):
+	ucob.err = 0
 	async with session.get(url) as data:
 		if data.status != 200:
+			ucob.err = data.status
 			return ucob
 		cast = await data.json()
 		for c in cast['events']:
@@ -125,7 +136,12 @@ async def ucobhandle(url, code, end, ucob, ucobt, token, session):
 				#print(c['ability']['name'])
 		if not (cast.get('nextPageTimestamp') is None):
 			url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
-			ucob = await ucobhandle(url, code, end, ucob, ucobt, token, session)
+			while True:
+				ucob = await ucobhandle(url, code, end, ucob, ucobt, token, session)
+				if ucob.err == 429: #Rate limit, wait and try again
+					asyncio.sleep(2)
+				else:
+					break
 		else:
 			if ucobt.gold > 4 or ucobt.enrage == 1:
 				ucob.enrage += 1
@@ -143,18 +159,15 @@ async def ucobhandle(url, code, end, ucob, ucobt, token, session):
 		return ucob
 
 async def uwuhandle(url, code, end, uwu, uwut, token, session):
+	uwu.err = 0
 	async with session.get(url) as data:
 		if data.status != 200:
+			#print('Error ' + str(data.status))
+			uwu.err = data.status
 			return uwu
 		cast = await data.json()
 		for c in cast['events']:
 			if not (c['ability'] is None):
-				if c['ability']['name'] == 'Attack':
-					continue
-				elif c['ability']['name'] == 'Tumult':
-					continue
-				elif  c['ability']['name'] == '':
-					continue
 				if c['ability']['name'] == 'Sabik':
 					uwut.enrage = 1
 				elif c['ability']['name'] == 'Ultimate Suppression':
@@ -174,7 +187,12 @@ async def uwuhandle(url, code, end, uwu, uwut, token, session):
 				#print(c['ability']['name'])
 		if not (cast.get('nextPageTimestamp') is None):
 			url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
-			uwu = await uwuhandle(url, code, end, uwu, uwut, token, session)
+			while True:
+				uwu = await uwuhandle(url, code, end, uwu, uwut, token, session)
+				if uwu.err == 429: #Rate limit, wait and try again
+					asyncio.sleep(2)
+				else:
+					break
 		else:
 			uwu.enrage += uwut.enrage
 			if uwut.ultima >= 4: #This seems to be weird? Every use equals to 2 casts for some reason.
