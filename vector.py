@@ -7,7 +7,7 @@ import guildparse
 # 0 = Discord
 # 1 = FFlogs
 file = open("token.txt", "r")
-token = file.read().split(',')
+token = file.read().split('\n')
 out = open("out/help", "r")
 helpsect = out.read().split("Â")
 client = discord.Client()

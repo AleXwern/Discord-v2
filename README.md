@@ -5,13 +5,21 @@ The Google Sheets doc this is mainly used for:
 https://docs.google.com/spreadsheets/d/1Xrb5CjEM74nQhiQ9Jx6H6wOnpfMIgOZR2oYEBxSqG1A/edit?usp=sharing
 
 The v1 bot was a NodeJS app that became very bloated and annoying to manage so v2's objective is to be more readable and better handled. The reason behind Python is just that I wanted to do something different. At the start of this project I'm basically looking at beginners guide on Python so the earlier code might look like that.
+Plan is to make this as standalone script too but for now you'll need to use this as Discord bot only.
+
+Requirements and setup:
+1. discord and aiohttp Python packages and Python 3 (you can install these with pip install in CMD)
+2. Create 'token.txt' in the repository root
+3. Create Discord bot and get the authentication token for it and paste it into token.txt followed by a newline.
+4. Before FFlogs keys put 'api_key='
+5. Get FFLogs V1 Client Key from your FFlogs account's setting and put it onto the file after the 'api_key='
+6. The bot should work now when you run vector.py.
 
 How to run:
 1. There's 2 main scripts: main.py and vector.py.
-2. Any private tokens go into 'token.txt' file that's in the root of the repo (not included), delimited by comma and in order of [DISCORD],api_key=[FFLOGS V1 Client Key].
-3. main.py is an endless loop that always tries to run vector.py whenever vector.py returns.
-4. vector.py is the main script and if you want to exit the script on exit, run this.
-5. Giving raw FFLogs link in Discord chat provides following output with more detailed info if the instance in question is UCoB, UWU or TEA (or any Ultimate released afterwards).
+2. main.py is an endless loop that always tries to run vector.py whenever vector.py returns.
+3. vector.py is the main script and if you want to exit the script on exit, run this.
+4. Giving raw FFLogs link in Discord chat provides following output with more detailed info if the instance in question is UCoB, UWU or TEA (or any Ultimate released afterwards).
 <img src="https://cdn.discordapp.com/attachments/587267707293007872/767436134451904613/unknown.png" alt="drawing" width="800"/>
 
 Main commands
