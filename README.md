@@ -18,6 +18,9 @@ Main commands
 1. Just FFLogs link provides data about the encounters inside that report
 2. .guild [partition] [guild] [server] [region] runs the command 1 on all matching partitions that are listed in guild.
 3. .user [partition] [user] is the same as guild but targets specific user.
+4. .recrawl, no arguments, digs through logarr.txt file for fflogs links and compiles data with them. Each delimited by line break (Win or UNIX doesn't matter)
+5. Names with whitespaces are replaced by _. ex. Up In There becomes Up_In_There.
+6. .help gives more help with commands
 
 Output
 1. Report ID:      - The ID of the report that is listed in the URL.
@@ -31,6 +34,7 @@ Output
 9. Avg pull len:   - Average length of all pulls.
 10. "Wipes by phase" lists all major Ultimate phases and how many times there was a wipe in each.
 
-FFlogs API status:
+Code status:
 1. Uses the v1 API for now (JSON return data)
 2. Aim is to see how v2 works and possibly switch to it but at first glance is looks wildly different so first I'll get the old system working and then see the improvements on v2 side.
+3. Code work and seems to give 100% correct data (TODO UWU intermission unsure) but each check take a very long time so seeking ideas on optimizing that.
