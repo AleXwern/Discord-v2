@@ -1,9 +1,7 @@
 import discord
-import requests
+import aiohttp
 import logparse
-import os
 import asyncio
-#from multiprocessing import Process
 
 url = 'https://www.fflogs.com:443/v1/reports/guild/'
 url2 = 'https://www.fflogs.com:443/v1/reports/user/'
@@ -16,50 +14,44 @@ class Guild:
 		self.region = ''
 		self.reports = []
 
-async def comp_fights(guild, token, message, data):
-	if data.status_code != 200:
-		await message.channel.send('There\'s an issue on FFlogs side or some data was incorrect: ' + str(data.status_code))
-		return
-	history = data.json()
+async def comp_fights(guild, token, message, data, session):
+	if data.status != 200:
+		await message.channel.send('There\'s an issue on FFlogs side or some data was incorrect: ' + str(data.status))
+		return ([])
+	history = await data.json()
 	for report in history:
 		if report['title'].lower() == guild.fight:
 			guild.reports.insert(0, report['id'])
 	await message.channel.send("Found " + str(len(guild.reports)) + " suitable reports.\nProcessing... (Ultimates take a while to process each)")
-	for report in guild.reports:
-		print(report)
-		await logparse.get_pulls(message, report, token)
+	ret = asyncio.gather(*[logparse.get_pulls(message, guild.reports[i], token, session) for i in range(len(guild.reports))])
 	await message.channel.send("All reports processed!")
+	return (ret)
 
-async def parse_guild(arr, token, message):
+async def parse_guild(arr, token, message, session):
 	guild = Guild()
 	if len(arr) < 5 or len(arr) > 5:
 		await message.channel.send("Incorrect amount of arguments: " + str(len(arr)) + " instead of 5.\nSee .help for more details.")
-		return
+		return ([])
 	guild.guild = arr[2].replace('_', '%20')
 	guild.fight = arr[1].replace('_', ' ').lower()
 	guild.server = arr[3]
 	guild.region = arr[4]
-	data = requests.get(url + guild.guild + '/' + guild.server + '/' + guild.region + '?' + token)
-	await comp_fights(guild, token, message, data)
+	async with session.get(url + guild.guild + '/' + guild.server + '/' + guild.region + '?' + token) as data:
+		return (await comp_fights(guild, token, message, data, session))
 
-async def parse_user(arr, token, message):
+async def parse_user(arr, token, message, session):
 	guild = Guild()
 	if len(arr) < 3 or len(arr) > 3:
 		await message.channel.send("Missing user or too much garbage data.\nSee .help for more details.")
-		return
+		return ([])
 	guild.guild = arr[2].replace('_', '%20')
 	guild.fight = arr[1].replace('_', ' ').lower()
-	data = requests.get(url2 + guild.guild + '?' + token)
-	await comp_fights(guild, token, message, data)
+	async with session.get(url2 + guild.guild + '?' + token) as data:
+		return (await comp_fights(guild, token, message, data, session))
 
-async def parse_file(token, message):
-	tasklist = []
-
+async def parse_file(token, message, session):
 	file = open("logarr.txt", "r")
 	reports = file.read().split('\n')
-	for report in reports:
-		task = asyncio.ensure_future(logparse.get_pulls(message, report[31:47], token))
-		tasklist.append(task)
-		#asyncio.ru
-	#for task in tasklist:
-	#	task.join()
+	ret = await asyncio.gather(*[logparse.get_pulls(message, reports[i][31:47], token, session) for i in range(len(reports))])
+	await message.channel.send('All logs processed!')
+	return (ret)

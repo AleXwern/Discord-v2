@@ -1,5 +1,4 @@
-import discord
-import requests
+import aiohttp
 from math import floor
 from datetime import datetime
 
@@ -41,153 +40,154 @@ class Report:
 		self.pulls = self.pullen = self.maxlen = self.start = self.end = self.raidlen = self.rpullen = self.kills = 0
 		self.fightid = [0, 0]
 
-async def alexhandle(url, code, end, tea, teat, token):
-	data = requests.get(url)
-	if data.status_code != 200:
+async def alexhandle(url, code, end, tea, teat, token, session):
+	#data = requests.get(url)
+	async with session.get(url) as data:
+		if data.status != 200:
+			return tea
+		cast = await data.json()
+		for c in cast['events']:
+			if not (c['ability'] is None):
+				if c['ability']['name'] == 'Temporal Interference':
+					teat.enrage = 1
+				elif c['ability']['name'] == 'Fate Calibration β':
+					teat.beta = 1
+				elif c['ability']['name'] == 'Fate Calibration α':
+					teat.alpha = 1
+				elif c['ability']['name'] == 'the Final Word':
+					teat.perf = 1
+				elif c['ability']['name'] == 'J Wave':
+					teat.add = 1
+				elif c['ability']['name'] == 'Wormhole Formation':
+					teat.worm = 1
+				elif c['ability']['name'] == 'Inception Formation':
+					teat.inc = 1
+				elif c['ability']['name'] == 'Chastening Heat':
+					teat.alex = 1
+				elif c['ability']['name'] == 'Temporal Stasis':
+					teat.ts = 1
+				elif c['ability']['name'] == 'J Kick':
+					teat.bjcc = 1
+				elif c['ability']['name'] == 'Alpha Sword':
+					teat.lc = 1
+				#print(c['ability']['name'])
+		if not (cast.get('nextPageTimestamp') is None):
+			url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
+			print(url)
+			tea = await alexhandle(url, code, end, tea, teat, token, session)
+		else:
+			tea.lc += teat.lc
+			tea.bjcc += teat.bjcc
+			tea.ts += teat.ts
+			tea.alex += teat.alex
+			tea.inc += teat.inc
+			tea.worm += teat.worm
+			tea.add += teat.add
+			tea.perf += teat.perf
+			tea.alpha += teat.alpha
+			tea.beta += teat.beta
+			tea.enrage += teat.enrage
 		return tea
-	cast = data.json()
-	for c in cast['events']:
-		if not (c['ability'] is None):
-			if c['ability']['name'] == 'Temporal Interference':
-				teat.enrage = 1
-			elif c['ability']['name'] == 'Fate Calibration β':
-				teat.beta = 1
-			elif c['ability']['name'] == 'Fate Calibration α':
-				teat.alpha = 1
-			elif c['ability']['name'] == 'the Final Word':
-				teat.perf = 1
-			elif c['ability']['name'] == 'J Wave':
-				teat.add = 1
-			elif c['ability']['name'] == 'Wormhole Formation':
-				teat.worm = 1
-			elif c['ability']['name'] == 'Inception Formation':
-				teat.inc = 1
-			elif c['ability']['name'] == 'Chastening Heat':
-				teat.alex = 1
-			elif c['ability']['name'] == 'Temporal Stasis':
-				teat.ts = 1
-			elif c['ability']['name'] == 'J Kick':
-				teat.bjcc = 1
-			elif c['ability']['name'] == 'Alpha Sword':
-				teat.lc = 1
-			#print(c['ability']['name'])
-	if not (cast.get('nextPageTimestamp') is None):
-		url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
-		print(url)
-		tea = await alexhandle(url, code, end, tea, teat, token)
-	else:
-		tea.lc += teat.lc
-		tea.bjcc += teat.bjcc
-		tea.ts += teat.ts
-		tea.alex += teat.alex
-		tea.inc += teat.inc
-		tea.worm += teat.worm
-		tea.add += teat.add
-		tea.perf += teat.perf
-		tea.alpha += teat.alpha
-		tea.beta += teat.beta
-		tea.enrage += teat.enrage
-	return tea
 
-async def ucobhandle(url, code, end, ucob, ucobt, token):
-	data = requests.get(url)
-	if data.status_code != 200:
+async def ucobhandle(url, code, end, ucob, ucobt, token, session):
+	async with session.get(url) as data:
+		if data.status != 200:
+			return ucob
+		cast = await data.json()
+		for c in cast['events']:
+			if not (c['ability'] is None):
+				if c['ability']['name'] == 'Attack':
+					continue
+				elif c['ability']['name'] == 'Liquid Hell':
+					continue
+				if c['ability']['name'] == 'Morn Afah':
+					ucobt.gold += 1
+				elif c['ability']['name'] == 'Grand Octet':
+					ucobt.octet = 1
+				elif c['ability']['name'] == 'Tenstrike Trio':
+					ucobt.ten = 1
+				elif c['ability']['name'] == 'Heavensfall Trio':
+					ucobt.fall = 1
+				elif c['ability']['name'] == 'Fellruin Trio':
+					ucobt.fell = 1
+				elif c['ability']['name'] == 'Blackfire Trio':
+					ucobt.blck = 1
+				elif c['ability']['name'] == 'Quickmarch Trio':
+					ucobt.quick = 1
+				elif c['ability']['name'] == 'Seventh Umbral Era':
+					ucobt.baha = 1
+				elif c['ability']['name'] == 'Heavensfall':
+					ucobt.nael = 1
+				elif c['ability']['name'] == 'Twister':
+					if c['targetIsFriendly'] == True:
+						ucob.twisty += 1
+						ucob.griefid.append(c['targetID'])
+				#print(c['ability']['name'])
+		if not (cast.get('nextPageTimestamp') is None):
+			url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
+			ucob = await ucobhandle(url, code, end, ucob, ucobt, token, session)
+		else:
+			if ucobt.gold > 4 or ucobt.enrage == 1:
+				ucob.enrage += 1
+			if ucobt.gold > 0:
+				ucob.gold += 1
+			ucob.doub += ucobt.doub
+			ucob.octet += ucobt.octet
+			ucob.ten += ucobt.ten
+			ucob.fall += ucobt.fall
+			ucob.fell += ucobt.fell
+			ucob.blck += ucobt.blck
+			ucob.quick += ucobt.quick
+			ucob.baha += ucobt.baha
+			ucob.nael += ucobt.nael
 		return ucob
-	cast = data.json()
-	for c in cast['events']:
-		if not (c['ability'] is None):
-			if c['ability']['name'] == 'Attack':
-				continue
-			elif c['ability']['name'] == 'Liquid Hell':
-				continue
-			if c['ability']['name'] == 'Morn Afah':
-				ucobt.gold += 1
-			elif c['ability']['name'] == 'Grand Octet':
-				ucobt.octet = 1
-			elif c['ability']['name'] == 'Tenstrike Trio':
-				ucobt.ten = 1
-			elif c['ability']['name'] == 'Heavensfall Trio':
-				ucobt.fall = 1
-			elif c['ability']['name'] == 'Fellruin Trio':
-				ucobt.fell = 1
-			elif c['ability']['name'] == 'Blackfire Trio':
-				ucobt.blck = 1
-			elif c['ability']['name'] == 'Quickmarch Trio':
-				ucobt.quick = 1
-			elif c['ability']['name'] == 'Seventh Umbral Era':
-				ucobt.baha = 1
-			elif c['ability']['name'] == 'Heavensfall':
-				ucobt.nael = 1
-			elif c['ability']['name'] == 'Twister':
-				if c['targetIsFriendly'] == True:
-					ucob.twisty += 1
-					ucob.griefid.append(c['targetID'])
-			#print(c['ability']['name'])
-	if not (cast.get('nextPageTimestamp') is None):
-		url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
-		ucob = await ucobhandle(url, code, end, ucob, ucobt, token)
-	else:
-		if ucobt.gold > 4 or ucobt.enrage == 1:
-			ucob.enrage += 1
-		if ucobt.gold > 0:
-			ucob.gold += 1
-		ucob.doub += ucobt.doub
-		ucob.octet += ucobt.octet
-		ucob.ten += ucobt.ten
-		ucob.fall += ucobt.fall
-		ucob.fell += ucobt.fell
-		ucob.blck += ucobt.blck
-		ucob.quick += ucobt.quick
-		ucob.baha += ucobt.baha
-		ucob.nael += ucobt.nael
-	return ucob
 
-async def uwuhandle(url, code, end, uwu, uwut, token):
-	data = requests.get(url)
-	if data.status_code != 200:
+async def uwuhandle(url, code, end, uwu, uwut, token, session):
+	async with session.get(url) as data:
+		if data.status != 200:
+			return uwu
+		cast = await data.json()
+		for c in cast['events']:
+			if not (c['ability'] is None):
+				if c['ability']['name'] == 'Attack':
+					continue
+				elif c['ability']['name'] == 'Tumult':
+					continue
+				elif  c['ability']['name'] == '':
+					continue
+				if c['ability']['name'] == 'Sabik':
+					uwut.enrage = 1
+				elif c['ability']['name'] == 'Ultimate Suppression':
+					uwut.supp = 1
+				elif c['ability']['name'] == 'Ultimate Annihilation':
+					uwut.annh = 1
+				elif c['ability']['name'] == 'Ultimate Predation':
+					uwut.pred = 1
+				elif c['ability']['name'] == 'Ultima':
+					uwut.ultima += 1
+				elif c['ability']['name'] == 'Freefire':
+					uwut.inter = 1
+				elif c['ability']['name'] == 'Earthen Fury':
+					uwut.titan = 1
+				elif c['ability']['name'] == 'Hellfire':
+					uwut.ifrit = 1
+				#print(c['ability']['name'])
+		if not (cast.get('nextPageTimestamp') is None):
+			url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
+			uwu = await uwuhandle(url, code, end, uwu, uwut, token, session)
+		else:
+			uwu.enrage += uwut.enrage
+			if uwut.ultima >= 4: #This seems to be weird? Every use equals to 2 casts for some reason.
+				uwu.roul += 1
+			uwu.supp += uwut.supp
+			uwu.annh += uwut.annh
+			uwu.pred += uwut.pred
+			if uwut.ultima > 0:
+				uwu.ultima += 1
+			uwu.inter += uwut.inter
+			uwu.titan += uwut.titan
+			uwu.ifrit += uwut.ifrit
 		return uwu
-	cast = data.json()
-	for c in cast['events']:
-		if not (c['ability'] is None):
-			if c['ability']['name'] == 'Attack':
-				continue
-			elif c['ability']['name'] == 'Tumult':
-				continue
-			elif  c['ability']['name'] == '':
-				continue
-			if c['ability']['name'] == 'Sabik':
-				uwut.enrage = 1
-			elif c['ability']['name'] == 'Ultimate Suppression':
-				uwut.supp = 1
-			elif c['ability']['name'] == 'Ultimate Annihilation':
-				uwut.annh = 1
-			elif c['ability']['name'] == 'Ultimate Predation':
-				uwut.pred = 1
-			elif c['ability']['name'] == 'Ultima':
-				uwut.ultima += 1
-			elif c['ability']['name'] == 'Freefire':
-				uwut.inter = 1
-			elif c['ability']['name'] == 'Earthen Fury':
-				uwut.titan = 1
-			elif c['ability']['name'] == 'Hellfire':
-				uwut.ifrit = 1
-			#print(c['ability']['name'])
-	if not (cast.get('nextPageTimestamp') is None):
-		url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
-		uwu = await uwuhandle(url, code, end, uwu, uwut, token)
-	else:
-		uwu.enrage += uwut.enrage
-		if uwut.ultima >= 4: #This seems to be weird? Every use equals to 2 casts for some reason.
-			uwu.roul += 1
-		uwu.supp += uwut.supp
-		uwu.annh += uwut.annh
-		uwu.pred += uwut.pred
-		if uwut.ultima > 0:
-			uwu.ultima += 1
-		uwu.inter += uwut.inter
-		uwu.titan += uwut.titan
-		uwu.ifrit += uwut.ifrit
-	return uwu
 
 async def hhmmss(time):
 	hours = floor(time / 3600)
@@ -201,7 +201,7 @@ async def hhmmss(time):
 		seconds = "0" + str(seconds)
 	return str(hours) + ':' + str(minutes) + ':' + str(seconds)
 
-async def print_logs(encounter, message, start, code):
+async def print_logs(encounter, start, code):
 	text = ''
 	start = int(start)
 
@@ -270,7 +270,7 @@ async def print_logs(encounter, message, start, code):
 			text += ' Enrage: ' + str(uwu.enrage - enc.kills)
 			print(str(enc.pulls) + ' ' + str(uwu.ifrit) + ' ' + str(uwu.titan) + ' ' + str(uwu.inter) + ' ' + str(uwu.pred) + ' ' + str(uwu.annh) + ' ' + str(uwu.supp) + ' ' + str(uwu.roul) + ' ' + str(uwu.enrage))
 		text += '```'
-		await message.channel.send(text)
+		return (text)
 
 async def get_griefname(report, enc): #This is very ugly and probably could be done better
 	for e in enc.ucob.griefid:
@@ -289,7 +289,7 @@ async def addphase_check(report, enc):
 					enc.ucob.doub += 1
 			break
 
-async def parse_report(report, code, token, message):
+async def parse_report(report, code, token, session):
 	zone = ''
 	enc = []
 	i = 0
@@ -327,25 +327,25 @@ async def parse_report(report, code, token, message):
 		if enc[i].pullen > 20000:
 			url = ulturl + code + '?start=' + str(p['start_time']) + '&end=' + str(p['end_time']) + '&hostility=1&translate=true&' + token
 			if enc[i].raidtype == 'The Epic of Alexander (Ultimate)':
-				enc[i].tea = await alexhandle(url, code, p['end_time'], enc[i].tea, TEA(enrage), token)
+				enc[i].tea = await alexhandle(url, code, p['end_time'], enc[i].tea, TEA(enrage), token, session)
 			elif enc[i].raidtype == 'the Unending Coil of Bahamut (Ultimate)':
-				enc[i].ucob = await ucobhandle(url, code, p['end_time'], enc[i].ucob, UCoB(enrage), token)
+				enc[i].ucob = await ucobhandle(url, code, p['end_time'], enc[i].ucob, UCoB(enrage), token, session)
 			elif enc[i].raidtype == 'the Weapon\'s Refrain (Ultimate)' or enc[i].raidtype == 'The Weapon\'s Refrain (Ultimate)':
-				enc[i].uwu = await uwuhandle(url, code, p['end_time'], enc[i].uwu, UWU(enrage), token)
+				enc[i].uwu = await uwuhandle(url, code, p['end_time'], enc[i].uwu, UWU(enrage), token, session)
 		enrage = False
 	if zone == 'the Unending Coil of Bahamut (Ultimate)':
 		await addphase_check(report, enc[i])
 		#await get_griefname(report, enc[i])
-	await print_logs(enc, message, report['start'], code)
+	return (await print_logs(enc, report['start'], code))
 
-async def get_pulls(message, code, token):
+async def get_pulls(message, code, token, session):
 	print(code)
 	if len(code) != 16:
-		await message.channel.send('Invalid log!')
-		return
-	data = requests.get(logreport + code + '?' + token)
-	if data.status_code != 200:
-		await message.channel.send('There\'s an issue on FFlogs side or bad link: ' + str(data.status_code))
-		return
-	await parse_report(data.json(), code, token, message)
+		await message.channel.send('Invalid log!: ' + code)
+		return ([])
+	async with session.get(logreport + code + '?' + token) as data:
+		if data.status != 200:
+			await message.channel.send('There\'s an issue on FFlogs side or bad link: ' + str(data.status))
+			return ([])
+		return (await parse_report(await data.json(), code, token, session))
 		
