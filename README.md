@@ -7,6 +7,9 @@ https://docs.google.com/spreadsheets/d/1Xrb5CjEM74nQhiQ9Jx6H6wOnpfMIgOZR2oYEBxSq
 The v1 bot was a NodeJS app that became very bloated and annoying to manage so v2's objective is to be more readable and better handled. The reason behind Python is just that I wanted to do something different. At the start of this project I'm basically looking at beginners guide on Python so the earlier code might look like that.
 Plan is to make this as standalone script too but for now you'll need to use this as Discord bot only.
 
+NOTE! Everytime there's a mention of FFlogs link it means the full URL with HTTPS and everything and not just the report code. It's just easier to slap the entire URL and make the bot do the work. Note also that the characters after the code don't matter as the bot just looks at the expected position where the 16 character code is.
+Example of minimum length URL: https://www.fflogs.com/reports/xHY8WMrnBwq9RKt4
+
 Requirements and setup:
 1. discord and aiohttp Python packages and Python 3 (you can install these with pip install in CMD)
 2. Create 'token.txt' in the repository root
