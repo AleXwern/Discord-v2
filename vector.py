@@ -9,7 +9,7 @@ import guildparse
 file = open("token.txt", "r")
 token = file.read().split('\n')
 out = open("out/help", "r")
-helpsect = out.read().split("Â")
+helpsect = out.read().split("%")
 client = discord.Client()
 server = 0
 
@@ -51,5 +51,7 @@ async def on_message(message):
 		elif '.rs' in message.content and str(message.author) == 'AleXwern#4074':
 			print('Closing connection!')
 			await client.close()
+		elif '.check' == message.content[:6]:
+			await message.channel.send(helpsect[1])
 
 client.run(token[0])

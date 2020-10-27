@@ -3,6 +3,11 @@ import asyncio
 from math import floor
 from datetime import datetime
 
+# Request errors
+# 429 = rate limit
+# 401 = invalid api key
+# 400 = bad request
+# 200 = fine
 logreport = 'https://www.fflogs.com:443/v1/report/fights/'
 ulturl = 'https://www.fflogs.com/v1/report/events/casts/'
 dformat = "%a %d %b %Y at %H:%M:%S"
@@ -47,8 +52,8 @@ class Report:
 async def alexhandle(url, code, end, tea, teat, token, session):
 	tea.err = 0
 	async with session.get(url) as data:
+		tea.err = data.status
 		if data.status != 200:
-			tea.err = data.status
 			return tea
 		cast = await data.json()
 		for c in cast['events']:
@@ -81,7 +86,7 @@ async def alexhandle(url, code, end, tea, teat, token, session):
 			while True:
 				tea = await alexhandle(url, code, end, tea, teat, token, session)
 				if tea.err == 429: #Rate limit, wait and try again
-					asyncio.sleep(2)
+					await asyncio.sleep(2)
 				else:
 					break
 		else:
@@ -101,8 +106,8 @@ async def alexhandle(url, code, end, tea, teat, token, session):
 async def ucobhandle(url, code, end, ucob, ucobt, token, session):
 	ucob.err = 0
 	async with session.get(url) as data:
+		ucob.err = data.status
 		if data.status != 200:
-			ucob.err = data.status
 			return ucob
 		cast = await data.json()
 		for c in cast['events']:
@@ -139,7 +144,7 @@ async def ucobhandle(url, code, end, ucob, ucobt, token, session):
 			while True:
 				ucob = await ucobhandle(url, code, end, ucob, ucobt, token, session)
 				if ucob.err == 429: #Rate limit, wait and try again
-					asyncio.sleep(2)
+					await asyncio.sleep(2)
 				else:
 					break
 		else:
@@ -161,9 +166,8 @@ async def ucobhandle(url, code, end, ucob, ucobt, token, session):
 async def uwuhandle(url, code, end, uwu, uwut, token, session):
 	uwu.err = 0
 	async with session.get(url) as data:
+		uwu.err = data.status
 		if data.status != 200:
-			#print('Error ' + str(data.status))
-			uwu.err = data.status
 			return uwu
 		cast = await data.json()
 		for c in cast['events']:
@@ -177,31 +181,31 @@ async def uwuhandle(url, code, end, uwu, uwut, token, session):
 				elif c['ability']['name'] == 'Ultimate Predation':
 					uwut.pred = 1
 				elif c['ability']['name'] == 'Ultima':
-					uwut.ultima += 1
-				elif c['ability']['name'] == 'Freefire':
+					uwut.ultima = 1
+				elif c['ability']['name'] == 'Blight':
 					uwut.inter = 1
 				elif c['ability']['name'] == 'Earthen Fury':
 					uwut.titan = 1
 				elif c['ability']['name'] == 'Hellfire':
 					uwut.ifrit = 1
+				elif c['ability']['name'] == 'Aetheric Boom':
+					uwut.roul = 1
 				#print(c['ability']['name'])
 		if not (cast.get('nextPageTimestamp') is None):
 			url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
 			while True:
 				uwu = await uwuhandle(url, code, end, uwu, uwut, token, session)
 				if uwu.err == 429: #Rate limit, wait and try again
-					asyncio.sleep(2)
+					await asyncio.sleep(2)
 				else:
 					break
 		else:
 			uwu.enrage += uwut.enrage
-			if uwut.ultima >= 4: #This seems to be weird? Every use equals to 2 casts for some reason.
-				uwu.roul += 1
+			uwu.roul += uwut.roul
 			uwu.supp += uwut.supp
 			uwu.annh += uwut.annh
 			uwu.pred += uwut.pred
-			if uwut.ultima > 0:
-				uwu.ultima += 1
+			uwu.ultima += uwut.ultima
 			uwu.inter += uwut.inter
 			uwu.titan += uwut.titan
 			uwu.ifrit += uwut.ifrit
@@ -344,12 +348,24 @@ async def parse_report(report, code, token, session):
 		enc[i].raidlen = enc[i].end - enc[i].start
 		if enc[i].pullen > 20000:
 			url = ulturl + code + '?start=' + str(p['start_time']) + '&end=' + str(p['end_time']) + '&hostility=1&translate=true&' + token
-			if enc[i].raidtype == 'The Epic of Alexander (Ultimate)':
+			while enc[i].raidtype == 'The Epic of Alexander (Ultimate)':
 				enc[i].tea = await alexhandle(url, code, p['end_time'], enc[i].tea, TEA(enrage), token, session)
-			elif enc[i].raidtype == 'the Unending Coil of Bahamut (Ultimate)':
+				if enc[i].tea.err == 429:
+					await asyncio.sleep(2)
+				else:
+					break
+			while enc[i].raidtype == 'the Unending Coil of Bahamut (Ultimate)':
 				enc[i].ucob = await ucobhandle(url, code, p['end_time'], enc[i].ucob, UCoB(enrage), token, session)
-			elif enc[i].raidtype == 'the Weapon\'s Refrain (Ultimate)' or enc[i].raidtype == 'The Weapon\'s Refrain (Ultimate)':
+				if enc[i].ucob.err == 429:
+					await asyncio.sleep(2)
+				else:
+					break
+			while enc[i].raidtype == 'the Weapon\'s Refrain (Ultimate)' or enc[i].raidtype == 'The Weapon\'s Refrain (Ultimate)':
 				enc[i].uwu = await uwuhandle(url, code, p['end_time'], enc[i].uwu, UWU(enrage), token, session)
+				if enc[i].uwu.err == 429:
+					await asyncio.sleep(2)
+				else:
+					break
 		enrage = False
 	if zone == 'the Unending Coil of Bahamut (Ultimate)':
 		await addphase_check(report, enc[i])
