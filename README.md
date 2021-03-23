@@ -17,6 +17,7 @@ Requirements and setup:
 4. Before FFlogs keys put 'api_key='
 5. Get FFLogs V1 Client Key from your FFlogs account's setting and put it onto the file after the 'api_key='
 6. The bot should work now when you run vector.py.
+7. If you have any webhooks you can send data to you can list them in webhooks.conf delimited by a linebreak.
 
 How to run:
 1. There's 2 main scripts: main.py and vector.py.
@@ -32,6 +33,8 @@ Main commands
 4. .recrawl, no arguments, digs through logarr.txt file for fflogs links and compiles data with them. Each delimited by line break (Win or UNIX doesn't matter)
 5. Names with whitespaces are replaced by _. ex. Up In There becomes Up_In_There.
 6. .help gives more help with commands
+7. .hook N sets current POST webhook to index N from list. Default is -1 aka none
+8. .send sends last compiled encounter data to current set webhook
 
 Output
 1. Report ID:      - The ID of the report that is listed in the URL.
