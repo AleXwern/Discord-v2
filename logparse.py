@@ -24,6 +24,7 @@ class UCoB:
 	def __init__(self, enrage):
 		self.twin = self.nael = self.baha = self.quick = self.blck = self.fell = self.fall = self.ten = self.octet = self.doub = self.gold = 0
 		self.enrage = 0
+		self.twintania = 0
 		self.err = 0
 		self.twisty = 0
 		self.griefid = []
@@ -41,13 +42,14 @@ class UWU:
 
 class Report:
 	raidtype = ''
-	def __init__(self, zone):
+	def __init__(self, zone, tag):
 		self.raidtype = zone
 		self.tea = TEA(False)
 		self.ucob = UCoB(False)
 		self.uwu = UWU(False)
 		self.pulls = self.pullen = self.maxlen = self.start = self.end = self.raidlen = self.rpullen = self.kills = 0
 		self.fightid = [0, 0]
+		self.tag = tag
 
 async def alexhandle(url, code, end, tea, teat, token, session):
 	tea.err = 0
@@ -120,6 +122,7 @@ async def ucobhandle(url, code, end, ucob, ucobt, token, session):
 					ucobt.gold += 1
 				elif c['ability']['name'] == 'Grand Octet':
 					ucobt.octet = 1
+					ucobt.twintania = 1
 				elif c['ability']['name'] == 'Tenstrike Trio':
 					ucobt.ten = 1
 				elif c['ability']['name'] == 'Heavensfall Trio':
@@ -137,7 +140,7 @@ async def ucobhandle(url, code, end, ucob, ucobt, token, session):
 				elif c['ability']['name'] == 'Twister':
 					if c['targetIsFriendly'] == True:
 						ucob.twisty += 1
-						ucob.griefid.append(c['targetID'])
+						#ucob.griefid.append(c['targetID'])
 				#print(c['ability']['name'])
 		if not (cast.get('nextPageTimestamp') is None):
 			url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
@@ -148,12 +151,13 @@ async def ucobhandle(url, code, end, ucob, ucobt, token, session):
 				else:
 					break
 		else:
-			if ucobt.gold > 4 or ucobt.enrage == 1:
+			if (ucobt.gold / 2) > 4 or ucobt.enrage == 1:
 				ucob.enrage += 1
 			if ucobt.gold > 0:
 				ucob.gold += 1
 			ucob.doub += ucobt.doub
 			ucob.octet += ucobt.octet
+			ucob.twintania += ucobt.twintania
 			ucob.ten += ucobt.ten
 			ucob.fall += ucobt.fall
 			ucob.fell += ucobt.fell
@@ -161,6 +165,7 @@ async def ucobhandle(url, code, end, ucob, ucobt, token, session):
 			ucob.quick += ucobt.quick
 			ucob.baha += ucobt.baha
 			ucob.nael += ucobt.nael
+			#print(str(ucobt.gold))
 		return ucob
 
 async def uwuhandle(url, code, end, uwu, uwut, token, session):
@@ -225,6 +230,7 @@ async def hhmmss(time):
 
 async def print_logs(encounter, start, code):
 	text = ''
+	encs = []
 	start = int(start)
 
 	for enc in encounter:
@@ -242,10 +248,11 @@ async def print_logs(encounter, start, code):
 		text += '\nPull length:	' + str(await hhmmss(floor(enc.rpullen / 1000)))
 		text += '\nMax pull len:   ' + str(await hhmmss(enc.maxlen))
 		text += '\nAvg pull len:   ' + str(await hhmmss(floor(enc.rpullen / 1000 / enc.pulls)))
+		text += '\nCo-tank:        ' + enc.tag
 		if enc.raidtype == 'The Epic of Alexander (Ultimate)':
 			tea = enc.tea
 			text += '\n\nAdditional TEA information - Wipes by phase:'
-			text += '\nLL: ' + str(enc.pulls - tea.lc)
+			text += '\nPM: ' + str(enc.pulls - tea.lc)
 			text += ' LC: ' + str(tea.lc - tea.bjcc)
 			text += ' BJCC: ' + str(tea.bjcc - tea.ts)
 			text += ' TS: ' + str(tea.ts - tea.alex)
@@ -273,9 +280,9 @@ async def print_logs(encounter, start, code):
 			text += ' Twin/Nael: ' + str(ucob.doub - ucob.gold)
 			text += ' Golden: ' + str(ucob.gold - ucob.enrage)
 			text += ' Enrage: ' + str(ucob.enrage - enc.kills)
-			text += '\nTwisters: ' + str(ucob.twisty)
-			for name in ucob.grief:
-				text += '\n	' + name
+			#text += '\nTwisters: ' + str(ucob.twisty)
+			#for name in ucob.grief:
+			#	text += '\n	' + name
 			print(str(enc.pulls) + ' ' + str(ucob.nael) + ' ' + str(ucob.baha) + ' ' + str(ucob.quick) + ' ' + str(ucob.blck) + ' ' + str(ucob.fell) + ' ' + str(ucob.fall) + ' ' + str(ucob.ten) + ' ' + str(ucob.octet) + ' ' + str(ucob.doub) + ' ' + str(ucob.gold) + ' ' + str(ucob.enrage))
 		elif enc.raidtype == "the Weapon\'s Refrain (Ultimate)" or enc.raidtype == 'The Weapon\'s Refrain (Ultimate)':
 			uwu = enc.uwu
@@ -292,7 +299,8 @@ async def print_logs(encounter, start, code):
 			text += ' Enrage: ' + str(uwu.enrage - enc.kills)
 			print(str(enc.pulls) + ' ' + str(uwu.ifrit) + ' ' + str(uwu.titan) + ' ' + str(uwu.inter) + ' ' + str(uwu.pred) + ' ' + str(uwu.annh) + ' ' + str(uwu.supp) + ' ' + str(uwu.roul) + ' ' + str(uwu.enrage))
 		text += '```'
-		return (text)
+		encs.append(text)
+	return (encs)
 
 async def get_griefname(report, enc): #This is very ugly and probably could be done better
 	for e in enc.ucob.griefid:
@@ -301,33 +309,58 @@ async def get_griefname(report, enc): #This is very ugly and probably could be d
 				enc.ucob.grief.append(p['name'])
 				break
 
-async def addphase_check(report, enc):
+async def addphase_check(url, report, session):
+	twinID = 0
+	err = 200
+
 	for p in report['enemies']:
 		if p['name'] == 'Twintania':
-			for g in p['fights']:
-				if g.get('groups') is None:
-					continue
-				if g['groups'] >= 9 and g['id'] >= enc.fightid[0] and g['id'] <= enc.fightid[1]:
-					enc.ucob.doub += 1
+			twinID = p['id']
 			break
+	while 1:
+		if err != 200:
+			await asyncio.sleep(2)
+			err = 0
+		async with session.get(url) as data:
+			if data.status != 200:
+				err = data.status
+				continue
+			data = await data.json()
+			for buff in data['events']:
+				if buff['targetID'] == twinID and buff['ability']['name'] == 'Damage Up':
+					return (1)
+		break
+	return (0)
+
+
+async def identify_encounter(report):
+	for friend in report:
+		if friend['name'] != 'Alexwern Nisutoromu':
+			if friend['type'] == 'Paladin':
+				return (friend['name'])
+			elif friend['type'] == 'DarkKnight':
+				return (friend['name'])
+			elif friend['type'] == 'Warrior':
+				return (friend['name'])
+			elif friend['type'] == 'Gunbreaker':
+				return (friend['name'])
+	return ('NULL')
 
 async def parse_report(report, code, token, session):
 	zone = ''
 	enc = []
 	i = 0
 	enrage = False
+	identity = await identify_encounter(report['friendlies'])
 
 	for p in report['fights']:
 		if zone == '':
-			enc.append(Report(p['zoneName']))
+			enc.append(Report(p['zoneName'], identity))
 			zone = p['zoneName']
 		elif p['zoneName'] != zone:
-			if zone == 'the Unending Coil of Bahamut (Ultimate)':
-				await addphase_check(report, enc[i])
-				#await get_griefname(report, enc[i])
 			zone = p['zoneName']
 			i += 1
-			enc.append(Report(p['zoneName']))
+			enc.append(Report(p['zoneName'], identity))
 		enc[i].pullen = p['end_time'] - p['start_time']
 		if enc[i].pullen > 20000:
 			enc[i].pulls += 1
@@ -348,6 +381,7 @@ async def parse_report(report, code, token, session):
 		enc[i].raidlen = enc[i].end - enc[i].start
 		if enc[i].pullen > 20000:
 			url = ulturl + code + '?start=' + str(p['start_time']) + '&end=' + str(p['end_time']) + '&hostility=1&translate=true&' + token
+			#print(url)
 			while enc[i].raidtype == 'The Epic of Alexander (Ultimate)':
 				enc[i].tea = await alexhandle(url, code, p['end_time'], enc[i].tea, TEA(enrage), token, session)
 				if enc[i].tea.err == 429:
@@ -359,6 +393,8 @@ async def parse_report(report, code, token, session):
 				if enc[i].ucob.err == 429:
 					await asyncio.sleep(2)
 				else:
+					url = 'https://www.fflogs.com:443/v1/report/events/buffs/' + code + '?start=' + str(p['start_time']) + '&end=' + str(p['end_time']) + '&hostility=1&' + token
+					enc[i].ucob.doub += await addphase_check(url, report, session)
 					break
 			while enc[i].raidtype == 'the Weapon\'s Refrain (Ultimate)' or enc[i].raidtype == 'The Weapon\'s Refrain (Ultimate)':
 				enc[i].uwu = await uwuhandle(url, code, p['end_time'], enc[i].uwu, UWU(enrage), token, session)
@@ -367,9 +403,6 @@ async def parse_report(report, code, token, session):
 				else:
 					break
 		enrage = False
-	if zone == 'the Unending Coil of Bahamut (Ultimate)':
-		await addphase_check(report, enc[i])
-		#await get_griefname(report, enc[i])
 	return (await print_logs(enc, report['start'], code))
 
 async def get_pulls(message, code, token, session):
@@ -381,5 +414,6 @@ async def get_pulls(message, code, token, session):
 		if data.status != 200:
 			await message.channel.send('There\'s an issue on FFlogs side or bad link: ' + str(data.status))
 			return ([])
+		print(logreport + code + '?' + token)
 		return (await parse_report(await data.json(), code, token, session))
 		

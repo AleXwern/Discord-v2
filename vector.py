@@ -2,26 +2,45 @@ import discord
 import aiohttp
 import logparse
 import guildparse
+#import items
+import requests
+import os
 
 # Tokens present in token.txt, delimited by comma:
 # 0 = Discord
 # 1 = FFlogs
-file = open("token.txt", "r")
+file = open("token.conf", "r")
 token = file.read().split('\n')
 out = open("out/help", "r")
 helpsect = out.read().split("%")
 client = discord.Client()
 server = 0
+# Webhook data
+webhook = open("webhooks.conf", "r").read().split('\n')
+sendHook = -1
+lastMessage = 'NULL'
 
 @client.event
 async def on_ready():
 	print(f'{client.user} has connected to Discord!')
-	await client.change_presence(activity=discord.Game(name="Python3.6.3"))
+	await client.change_presence(activity=discord.Game(name="Python3"))
 
 async def printoutput(reports, channel):
-	for out in reports:
-		if (len(out) > 10):
-			await channel.send(out)
+	for report in reports:
+		for out in report:
+			if (len(out) > 10):
+				await channel.send(out)
+				await send_webhook(out)
+
+async def send_webhook(message):
+	global lastMessage
+	lastMessage = message
+	if sendHook > -1 and sendHook < len(webhook):
+		data = {
+			"content": message
+		}
+		result = requests.post(webhook[sendHook], json = data)
+		result.raise_for_status()
 
 @client.event
 async def on_message(message):
@@ -29,8 +48,10 @@ async def on_message(message):
 		if message.author == client.user:
 			return
 		elif 'https://www.fflogs.com/reports/' == message.content[:31]:
-			report = await logparse.get_pulls(message, message.content[31:47], token[1], session)
-			await message.channel.send(report)
+			reports = await logparse.get_pulls(message, message.content[31:47], token[1], session)
+			for out in reports:
+				await message.channel.send(out)
+				await send_webhook(out)
 		elif '.guild' == message.content[:6]:
 			reports = await guildparse.parse_guild(message.content.split(' '), token[1], message, session)
 			await printoutput(reports, message.channel)
@@ -53,5 +74,12 @@ async def on_message(message):
 			await client.close()
 		elif '.check' == message.content[:6]:
 			await message.channel.send(helpsect[1])
+		elif '.hook' == message.content[:5]:
+			global sendHook
+			sendHook = int(message.content.split(' ')[1])
+			await message.channel.send('Webhook status: ' + str(sendHook))
+		elif '.send' == message.content[:5]:
+			await send_webhook(lastMessage)
+
 
 client.run(token[0])

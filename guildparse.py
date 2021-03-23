@@ -23,7 +23,7 @@ async def comp_fights(guild, token, message, data, session):
 		if report['title'].lower() == guild.fight:
 			guild.reports.insert(0, report['id'])
 	await message.channel.send("Found " + str(len(guild.reports)) + " suitable reports.\nProcessing... (Ultimates take a while to process each)")
-	ret = asyncio.gather(*[logparse.get_pulls(message, guild.reports[i], token, session) for i in range(len(guild.reports))])
+	ret = await asyncio.gather(*[logparse.get_pulls(message, guild.reports[i], token, session) for i in range(len(guild.reports))])
 	await message.channel.send("All reports processed!")
 	return (ret)
 

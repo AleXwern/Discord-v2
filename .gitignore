@@ -1,3 +1,4 @@
-token.txt
+token.conf
+webhooks.conf
 __pycache__/**
 run.bat.lnk
