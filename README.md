@@ -12,7 +12,7 @@ Example of minimum length URL: https://www.fflogs.com/reports/xHY8WMrnBwq9RKt4
 
 Requirements and setup:
 1. discord and aiohttp Python packages and Python 3 (you can install these with pip install in CMD)
-2. Create 'token.txt' in the repository root
+2. Create 'token.conf' in the repository root. NOTE THE CHANGED NAME FROM OLD VERSION
 3. Create Discord bot and get the authentication token for it and paste it into token.txt followed by a newline.
 4. Before FFlogs keys put 'api_key='
 5. Get FFLogs V1 Client Key from your FFlogs account's setting and put it onto the file after the 'api_key='
