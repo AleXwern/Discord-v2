@@ -2,23 +2,29 @@ import discord
 import aiohttp
 import logparse
 import guildparse
-#import items
+import logger
 import requests
 import os
 
 # Tokens present in token.txt, delimited by comma:
 # 0 = Discord
 # 1 = FFlogs
-file = open("token.conf", "r")
-token = file.read().split('\n')
-out = open("out/help", "r")
-helpsect = out.read().split("%")
-client = discord.Client()
-server = 0
-# Webhook data
-webhook = open("webhooks.conf", "r").read().split('\n')
-sendHook = -1
-lastMessage = 'NULL'
+try:
+	file = open("token.conf", "r")
+	token = file.read().split('\n')
+	token[0] = token[0].split("=")[1]
+	out = open("out/help", "r")
+	helpsect = out.read().split("%")
+	client = discord.Client()
+	server = 0
+	# Webhook data
+	webhook = open("webhooks.conf", "r").read().split('\n')
+	sendHook = -1
+	lastMessage = 'NULL'
+	logger.clear_old_logs()
+except Exception as err:
+	logger.set_error_offline("vector.py - globals", str(err))
+	exit()
 
 @client.event
 async def on_ready():
@@ -63,6 +69,8 @@ async def on_message(message):
 			await printoutput(reports, message.channel)
 		elif '.help' in message.content:
 			await message.channel.send(helpsect[0])
+		elif '.send' == message.content[:5]:
+			await send_webhook(lastMessage)
 		elif '.github' in message.content:
 			await message.channel.send('https://github.com/AleXwern')
 		elif '.source' in message.content:
@@ -78,8 +86,6 @@ async def on_message(message):
 			global sendHook
 			sendHook = int(message.content.split(' ')[1])
 			await message.channel.send('Webhook status: ' + str(sendHook))
-		elif '.send' == message.content[:5]:
-			await send_webhook(lastMessage)
 
 
 client.run(token[0])

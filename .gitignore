@@ -1,4 +1,5 @@
 token.conf
 webhooks.conf
+settings.conf
 __pycache__/**
 run.bat.lnk

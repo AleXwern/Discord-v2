@@ -1,0 +1,6 @@
+1. Error logger
+2. Automatic upload to Google Drive
+3. Docker
+4. Update README on FFlogs account things
+5. Could this be done with C/C++? Else ifs are not nice and with cast to int/long from strig I could just SwitchCase the search.
+6. I'm not user, i'm the dev. General user doesn't understand how the code works.

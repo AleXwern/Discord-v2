@@ -2,6 +2,7 @@ import aiohttp
 import asyncio
 from math import floor
 from datetime import datetime
+import logger
 
 # Request errors
 # 429 = rate limit
@@ -413,6 +414,8 @@ async def get_pulls(message, code, token, session):
 	async with session.get(logreport + code + '?' + token) as data:
 		if data.status != 200:
 			await message.channel.send('There\'s an issue on FFlogs side or bad link: ' + str(data.status))
+			data = await data.json()
+			await logger.set_error("get_pulls", "link: " + logreport + code + '?\nAPI status: ' + str(data["status"]) + " : " + str(data["error"]))
 			return ([])
 		print(logreport + code + '?' + token)
 		return (await parse_report(await data.json(), code, token, session))

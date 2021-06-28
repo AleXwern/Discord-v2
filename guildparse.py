@@ -2,6 +2,7 @@ import discord
 import aiohttp
 import logparse
 import asyncio
+import logger
 
 url = 'https://www.fflogs.com:443/v1/reports/guild/'
 url2 = 'https://www.fflogs.com:443/v1/reports/user/'
@@ -17,6 +18,8 @@ class Guild:
 async def comp_fights(guild, token, message, data, session):
 	if data.status != 200:
 		await message.channel.send('There\'s an issue on FFlogs side or some data was incorrect: ' + str(data.status))
+		data = await data.json()
+		await logger.set_error("comp_fights", "API status: " + str(data["status"]) + " : " + str(data["error"]))
 		return ([])
 	history = await data.json()
 	for report in history:

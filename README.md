@@ -10,21 +10,24 @@ Plan is to make this as standalone script too but for now you'll need to use thi
 NOTE! Everytime there's a mention of FFlogs link it means the full URL with HTTPS and everything and not just the report code. It's just easier to slap the entire URL and make the bot do the work. Note also that the characters after the code don't matter as the bot just looks at the expected position where the 16 character code is.
 Example of minimum length URL: https://www.fflogs.com/reports/xHY8WMrnBwq9RKt4
 
-Requirements and setup:
-1. discord and aiohttp Python packages and Python 3 (you can install these with pip install in CMD)
-2. Create 'token.conf' in the repository root. NOTE THE CHANGED NAME FROM OLD VERSION
-3. Create Discord bot and get the authentication token for it and paste it into token.txt followed by a newline.
-4. Before FFlogs keys put 'api_key='
-5. Get FFLogs V1 Client Key from your FFlogs account's setting and put it onto the file after the 'api_key='
-6. The bot should work now when you run vector.py.
-7. If you have any webhooks you can send data to you can list them in webhooks.conf delimited by a linebreak.
+# Installation
+1. Download and install the latest version of Python3. It can be found here https://www.python.org/downloads/
+2. Run install_XXXX.bat script. This will fetch all necessary Python libraries and setup the bot to be ready. Choose script that matches your operating system.
+3. If using ONLINE method: If you haven't already, create a Discord bot at https://discord.com/developers/applications and grab "token" from the "bot" tab on left. Copypaste the token into 'token.conf'
+4. In FFLogs user settings, create V1 client and GIVE IT A NAME. Grab the V1 client key and paste it into 'token.conf'
+5. The bot should now work when you launch vector.py
+6. Optional: If you have webhooks, you can paste them into 'webhooks.conf' delimited by newline (Win/UNIX)
 
-How to run:
+# How to run
 1. There's 2 main scripts: main.py and vector.py.
-2. main.py is an endless loop that always tries to run vector.py whenever vector.py returns.
+2. main.py is an endless loop that always tries to run vector.py whenever vector.py returns. Doesn't work on Linux for now.
 3. vector.py is the main script and if you want to exit the script on exit, run this.
 4. Giving raw FFLogs link in Discord chat provides following output with more detailed info if the instance in question is UCoB, UWU or TEA (or any Ultimate released afterwards).
 <img src="https://cdn.discordapp.com/attachments/587267707293007872/767436134451904613/unknown.png" alt="drawing" width="800"/>
+
+# Issues
+1. Error logging TBD. When error logging exists always send the logs with your issue.
+2. Open up a Issue in GitHub and try to give as much info about your issue as possible.
 
 Main commands
 1. Just FFLogs link provides data about the encounters inside that report
