@@ -1,5 +1,5 @@
 #!/bin/sh
-apt install python3 python3-pip -y
+sudo apt install python3 python3-pip -y
 pip3 install aiohttp discord.py asyncio requests arrow
 mkdir -p logs
 if [ ! -f webhooks.conf ];

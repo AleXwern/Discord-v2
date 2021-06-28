@@ -188,7 +188,7 @@ async def uwuhandle(url, code, end, uwu, uwut, token, session):
 					uwut.pred = 1
 				elif c['ability']['name'] == 'Ultima':
 					uwut.ultima = 1
-				elif c['ability']['name'] == 'Blight':
+				elif c['ability']['name'] == 'Freefire':
 					uwut.inter = 1
 				elif c['ability']['name'] == 'Earthen Fury':
 					uwut.titan = 1

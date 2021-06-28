@@ -7,7 +7,7 @@ import traceback
 
 pathlib.Path("logs").mkdir(parents=True, exist_ok=True)
 logfilename = "errlog_" + date.today().strftime("%d%m%Y") + ".log"
-logfile = open(str(pathlib.Path().resolve()) + "\\logs\\" + logfilename, "a")
+logfile = open(str(pathlib.Path().resolve()) + "/logs/" + logfilename, "a")
 logfile.write("Open date: " + datetime.now().strftime("%d/%m/%Y - %H:%M:%S") + "\n")
 
 def clear_old_logs():
