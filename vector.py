@@ -21,7 +21,7 @@ try:
 	webhook = open("webhooks.conf", "r").read().split('\n')
 	sendHook = -1
 	lastMessage = 'NULL'
-	logger.clear_old_logs()
+	#logger.clear_old_logs()
 except Exception as err:
 	logger.set_error_offline("vector.py - globals", str(err))
 	exit()

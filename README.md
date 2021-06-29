@@ -29,7 +29,7 @@ Example of minimum length URL: https://www.fflogs.com/reports/xHY8WMrnBwq9RKt4
 1. Error logging TBD. When error logging exists always send the logs with your issue.
 2. Open up a Issue in GitHub and try to give as much info about your issue as possible.
 
-Main commands
+# Main commands
 1. Just FFLogs link provides data about the encounters inside that report
 2. .guild [partition] [guild] [server] [region] runs the command 1 on all matching partitions that are listed in guild.
 3. .user [partition] [user] is the same as guild but targets specific user.
@@ -39,7 +39,7 @@ Main commands
 7. .hook N sets current POST webhook to index N from list. Default is -1 aka none
 8. .send sends last compiled encounter data to current set webhook
 
-Output
+# Output
 1. Report ID:      - The ID of the report that is listed in the URL.
 2. Total pulls:    - Total amount of pulls that are over 20 seconds long.
 3. Start time:     - Start time of first pull in server's local timezone.
@@ -50,7 +50,3 @@ Output
 8. Max pull len:   - The length of the longest pull.
 9. Avg pull len:   - Average length of all pulls.
 10. "Wipes by phase" lists all major Ultimate phases and how many times there was a wipe in each.
-
-Code status:
-1. Uses the v1 API for now. It's deprecated but working so It'll do for now.
-2. Aim is to see how v2 works and possibly switch to it but at first glance is looks wildly different so first I'll get the old system working and then see the improvements on v2 side.

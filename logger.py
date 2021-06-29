@@ -10,19 +10,21 @@ logfilename = "errlog_" + date.today().strftime("%d%m%Y") + ".log"
 logfile = open(str(pathlib.Path().resolve()) + "/logs/" + logfilename, "a")
 logfile.write("Open date: " + datetime.now().strftime("%d/%m/%Y - %H:%M:%S") + "\n")
 
-def clear_old_logs():
+"""def clear_old_logs():
     path = pathlib.Path().resolve()
     path = pathlib.Path(str(path) + "\\logs")
     cutoffTime = arrow.now().shift(days=-30)
     for log in pathlib.Path(path).glob("*"):
         itemTime = arrow.get(log.stat().st_mtime)
-        if itemTime < cutoffTime:
-            os.remove(os.path.join(path, str(log)))
+        #if itemTime < cutoffTime:
+        #   os.remove(os.path.join(path, str(log)))"""
 
 async def set_error(type, err):
     logfile.write("--ERROR TYPE: " + type + "--\n")
     logfile.write(err + "\n")
+    logfile.write(traceback.format_exc())
 
 def set_error_offline(type, err):
     logfile.write("--ERROR TYPE: " + type + "--\n")
     logfile.write(err + "\n")
+    logfile.write(traceback.format_exc())
