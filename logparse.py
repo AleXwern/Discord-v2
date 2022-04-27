@@ -41,6 +41,14 @@ class UWU:
 		if enrage == True:
 			self.enrage = 1
 
+class DSU:
+	def __init__(self, enrage):
+		self.vault = self.charibert = self.thordan = self.sanctity = self.strength = 0
+		self.enrage = 0
+		self.err = 0
+		if enrage == True:
+			self.enrage = 1
+
 class Report:
 	raidtype = ''
 	def __init__(self, zone, tag):
@@ -48,9 +56,43 @@ class Report:
 		self.tea = TEA(False)
 		self.ucob = UCoB(False)
 		self.uwu = UWU(False)
+		self.dsu = DSU(False)
 		self.pulls = self.pullen = self.maxlen = self.start = self.end = self.raidlen = self.rpullen = self.kills = 0
 		self.fightid = [0, 0]
 		self.tag = tag
+
+async def dsuhandle(url, code, end, dsu, dsut, token, session):
+	dsu.err = 0
+	async with session.get(url) as data:
+		dsu.err = data.status
+		if data.status != 200:
+			return dsu
+		cast = await data.json()
+		for c in cast['events']:
+			if not (c['ability'] is None):
+				if c['ability']['name'] == 'Strength of the Ward':
+					dsut.strength = 1
+				elif c['ability']['name'] == 'Sanctity of the Ward':
+					dsut.sanctity = 1
+				elif c['ability']['name'] == 'Ascalon\'s Mercy Concealed':
+					dsut.thordan = 1
+				elif c['ability']['name'] == 'Planar Prison':
+					dsut.charibert = 1
+				#print(c['ability']['name'])
+		if not (cast.get('nextPageTimestamp') is None):
+			url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
+			while True:
+				dsu = await alexhandle(url, code, end, dsu, dsut, token, session)
+				if dsu.err == 429: #Rate limit, wait and try again
+					await asyncio.sleep(2)
+				else:
+					break
+		else:
+			dsu.charibert += dsut.charibert
+			dsu.thordan += dsut.thordan
+			dsu.sanctity += dsut.sanctity
+			dsu.strength += dsut.strength
+		return dsu
 
 async def alexhandle(url, code, end, tea, teat, token, session):
 	tea.err = 0
@@ -299,6 +341,15 @@ async def print_logs(encounter, start, code):
 			text += ' Roul: ' + str(uwu.roul - uwu.enrage)
 			text += ' Enrage: ' + str(uwu.enrage - enc.kills)
 			print(str(enc.pulls) + ' ' + str(uwu.ifrit) + ' ' + str(uwu.titan) + ' ' + str(uwu.inter) + ' ' + str(uwu.pred) + ' ' + str(uwu.annh) + ' ' + str(uwu.supp) + ' ' + str(uwu.roul) + ' ' + str(uwu.enrage))
+		elif enc.raidtype == "Dragonsong\'s Reprise (Ultimate)":
+			dsu = enc.dsu
+			text += '\n\nAdditional DSU information - Wipes by phase:'
+			text += '\nVault: ' + str(enc.pulls - dsu.charibert - dsu.thordan)
+			text += ' Charibert: ' + str(dsu.charibert)
+			text += ' Thordan: ' + str(dsu.thordan - dsu.strength)
+			text += ' Strength: ' + str(dsu.strength - dsu.sanctity)
+			text += ' Sanctity: ' + str(dsu.sanctity)
+			#print(str(enc.pulls) + ' ' + str(uwu.ifrit) + ' ' + str(uwu.titan) + ' ' + str(uwu.inter) + ' ' + str(uwu.pred) + ' ' + str(uwu.annh) + ' ' + str(uwu.supp) + ' ' + str(uwu.roul) + ' ' + str(uwu.enrage))
 		text += '```'
 		encs.append(text)
 	return (encs)
@@ -383,6 +434,12 @@ async def parse_report(report, code, token, session):
 		if enc[i].pullen > 20000:
 			url = ulturl + code + '?start=' + str(p['start_time']) + '&end=' + str(p['end_time']) + '&hostility=1&translate=true&' + token
 			#print(url)
+			while enc[i].raidtype == 'Dragonsong\'s Reprise (Ultimate)':
+				enc[i].dsu = await dsuhandle(url, code, p['end_time'], enc[i].dsu, DSU(enrage), token, session)
+				if enc[i].dsu.err == 429:
+					await asyncio.sleep(2)
+				else:
+					break
 			while enc[i].raidtype == 'The Epic of Alexander (Ultimate)':
 				enc[i].tea = await alexhandle(url, code, p['end_time'], enc[i].tea, TEA(enrage), token, session)
 				if enc[i].tea.err == 429:
@@ -411,6 +468,7 @@ async def get_pulls(message, code, token, session):
 	if len(code) != 16:
 		await message.channel.send('Invalid log!: ' + code)
 		return ([])
+	print(logreport + code + '?' + token)
 	async with session.get(logreport + code + '?' + token) as data:
 		if data.status != 200:
 			await message.channel.send('There\'s an issue on FFlogs side or bad link: ' + str(data.status))
