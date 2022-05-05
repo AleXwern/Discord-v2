@@ -43,7 +43,7 @@ class UWU:
 
 class DSU:
 	def __init__(self, enrage):
-		self.vault = self.charibert = self.thordan = self.sanctity = self.strength = 0
+		self.vault = self.charibert = self.thordan = self.sanctity = self.strength = self.nidhogg = self.eyes = self.wrath = self.death = self.dragons = self.dragonking = 0
 		self.enrage = 0
 		self.err = 0
 		if enrage == True:
@@ -70,7 +70,21 @@ async def dsuhandle(url, code, end, dsu, dsut, token, session):
 		cast = await data.json()
 		for c in cast['events']:
 			if not (c['ability'] is None):
-				if c['ability']['name'] == 'Strength of the Ward':
+				if c['ability']['name'] == 'Morn Afah\'s Edge':
+					dsut.enrage = 1
+				elif c['ability']['name'] == 'Exaflare\'s Edge':
+					dsut.dragonking = 1
+				elif c['ability']['name'] == 'Great Wyrmsbreath':
+					dsut.dragons = 1
+				elif c['ability']['name'] == 'Death of the Heavens':
+					dsut.death = 1
+				elif c['ability']['name'] == 'Wrath of the Heavens':
+					dsut.wrath = 1
+				elif c['ability']['name'] == 'Resentment':
+					dsut.eyes = 1
+				elif c['ability']['name'] == 'Final Chorus':
+					dsut.nidhogg = 1
+				elif c['ability']['name'] == 'Strength of the Ward':
 					dsut.strength = 1
 				elif c['ability']['name'] == 'Sanctity of the Ward':
 					dsut.sanctity = 1
@@ -82,12 +96,19 @@ async def dsuhandle(url, code, end, dsu, dsut, token, session):
 		if not (cast.get('nextPageTimestamp') is None):
 			url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
 			while True:
-				dsu = await alexhandle(url, code, end, dsu, dsut, token, session)
+				dsu = await dsuhandle(url, code, end, dsu, dsut, token, session)
 				if dsu.err == 429: #Rate limit, wait and try again
 					await asyncio.sleep(2)
 				else:
 					break
 		else:
+			dsu.enrage += dsut.enrage
+			dsu.dragonking += dsut.dragonking
+			dsu.dragons += dsut.dragons
+			dsu.death += dsut.death
+			dsu.wrath += dsut.wrath
+			dsu.eyes += dsut.eyes
+			dsu.nidhogg += dsut.nidhogg
 			dsu.charibert += dsut.charibert
 			dsu.thordan += dsut.thordan
 			dsu.sanctity += dsut.sanctity
@@ -344,11 +365,18 @@ async def print_logs(encounter, start, code):
 		elif enc.raidtype == "Dragonsong\'s Reprise (Ultimate)":
 			dsu = enc.dsu
 			text += '\n\nAdditional DSU information - Wipes by phase:'
-			text += '\nVault: ' + str(enc.pulls - dsu.charibert - dsu.thordan)
+			text += '\nVault: ' + str(enc.pulls - dsu.thordan)
 			text += ' Charibert: ' + str(dsu.charibert)
 			text += ' Thordan: ' + str(dsu.thordan - dsu.strength)
 			text += ' Strength: ' + str(dsu.strength - dsu.sanctity)
-			text += ' Sanctity: ' + str(dsu.sanctity)
+			text += ' Sanctity: ' + str(dsu.sanctity - dsu.nidhogg)
+			text += ' Nidhogg: ' + str(dsu.nidhogg - dsu.eyes)
+			text += ' Eyes: ' + str(dsu.eyes - dsu.wrath)
+			text += ' Wrath: ' + str(dsu.wrath - dsu.death)
+			text += ' Death: ' + str(dsu.death - dsu.dragons)
+			text += ' Dragons: ' + str(dsu.dragons - dsu.dragonking)
+			text += ' Dragon-king: ' + str(dsu.dragonking - dsu.enrage)
+			text += ' Enrage: ' + str(dsu.enrage - enc.kills)
 			#print(str(enc.pulls) + ' ' + str(uwu.ifrit) + ' ' + str(uwu.titan) + ' ' + str(uwu.inter) + ' ' + str(uwu.pred) + ' ' + str(uwu.annh) + ' ' + str(uwu.supp) + ' ' + str(uwu.roul) + ' ' + str(uwu.enrage))
 		text += '```'
 		encs.append(text)
