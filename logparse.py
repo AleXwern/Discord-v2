@@ -43,7 +43,8 @@ class UWU:
 
 class DSU:
 	def __init__(self, enrage):
-		self.vault = self.charibert = self.thordan = self.sanctity = self.strength = self.nidhogg = self.eyes = self.wrath = self.death = self.dragons = self.dragonking = 0
+		self.vault = self.charibert = self.thordan = self.sanctity = self.strength = self.nidhogg = self.eyes = self.horse = self.wrath = self.death = self.dragons = self.dragonking = 0
+		self.checkpoint = 0
 		self.enrage = 0
 		self.err = 0
 		if enrage == True:
@@ -88,10 +89,14 @@ async def dsuhandle(url, code, end, dsu, dsut, token, session):
 					dsut.strength = 1
 				elif c['ability']['name'] == 'Sanctity of the Ward':
 					dsut.sanctity = 1
-				elif c['ability']['name'] == 'Ascalon\'s Mercy Concealed':
+				elif c['ability']['name'] == 'Ascalon\'s Might':
 					dsut.thordan = 1
 				elif c['ability']['name'] == 'Planar Prison':
 					dsut.charibert = 1
+				elif c['ability']['name'] == 'Holiest of Holy':
+					dsut.checkpoint |= 1
+				elif c['ability']['name'] == 'attack':
+					dsut.checkpoint |= 2
 				#print(c['ability']['name'])
 		if not (cast.get('nextPageTimestamp') is None):
 			url = ulturl + code + '?start=' + str(cast['nextPageTimestamp']) + '&end=' + str(end) + '&hostility=1&translate=true&' + token
@@ -109,10 +114,15 @@ async def dsuhandle(url, code, end, dsu, dsut, token, session):
 			dsu.wrath += dsut.wrath
 			dsu.eyes += dsut.eyes
 			dsu.nidhogg += dsut.nidhogg
-			dsu.charibert += dsut.charibert
+			if dsut.eyes != 0 and dsut.charibert:
+				dsu.horse += dsut.charibert
+			else:
+				dsu.charibert += dsut.charibert
 			dsu.thordan += dsut.thordan
 			dsu.sanctity += dsut.sanctity
 			dsu.strength += dsut.strength
+			if dsut.checkpoint == 3:
+				dsu.checkpoint += 1
 		return dsu
 
 async def alexhandle(url, code, end, tea, teat, token, session):
@@ -365,13 +375,15 @@ async def print_logs(encounter, start, code):
 		elif enc.raidtype == "Dragonsong\'s Reprise (Ultimate)":
 			dsu = enc.dsu
 			text += '\n\nAdditional DSU information - Wipes by phase:'
-			text += '\nVault: ' + str(enc.pulls - dsu.thordan)
-			text += ' Charibert: ' + str(dsu.charibert)
+			text += '\nVault: ' + str(enc.pulls - (dsu.charibert + dsu.thordan))
+			text += ' Charibert: ' + str(dsu.charibert - dsu.checkpoint)
+			text += ' Checkpoint: ' + str(dsu.checkpoint)
 			text += ' Thordan: ' + str(dsu.thordan - dsu.strength)
 			text += ' Strength: ' + str(dsu.strength - dsu.sanctity)
 			text += ' Sanctity: ' + str(dsu.sanctity - dsu.nidhogg)
 			text += ' Nidhogg: ' + str(dsu.nidhogg - dsu.eyes)
-			text += ' Eyes: ' + str(dsu.eyes - dsu.wrath)
+			text += ' Eyes: ' + str(dsu.eyes - dsu.horse)
+			text += ' Inter: ' + str(dsu.horse - dsu.wrath)
 			text += ' Wrath: ' + str(dsu.wrath - dsu.death)
 			text += ' Death: ' + str(dsu.death - dsu.dragons)
 			text += ' Dragons: ' + str(dsu.dragons - dsu.dragonking)
